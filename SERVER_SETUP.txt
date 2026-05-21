@@ -1,0 +1,232 @@
+═══════════════════════════════════════════════════════════════
+  SERVER SETUP GUIDE - JustTrying Browser Edition
+═══════════════════════════════════════════════════════════════
+
+
+📂 RECOMMENDED FOLDER STRUCTURE
+────────────────────────────────────────────────────────────────
+
+Upload these to your web host (e.g., public_html/justtrying/):
+
+  justtrying/
+  ├── index.html               ← Rename justtrying.html to this
+  ├── manifest.json            ← Lists what's available (REQUIRED)
+  ├── categories/              ← Your CSV files
+  │   ├── object.csv
+  │   ├── pitch.csv
+  │   ├── sound.csv
+  │   ├── action.csv
+  │   ├── extract.csv
+  │   ├── chord_major.csv
+  │   ├── chord_minor.csv
+  │   └── pitch_sequence.csv
+  ├── scores/                  ← Your score files (multiple OK)
+  │   ├── sample_score.txt
+  │   ├── performance_v2.txt
+  │   └── ... any number ...
+  └── music/                   ← Background music (optional)
+      ├── focus/
+      │   ├── track1.mp3
+      │   └── ...
+      ├── relaxing/
+      │   └── ...
+      ├── motivational/
+      ├── field/
+      └── hold/
+
+
+🚀 SETUP STEPS
+────────────────────────────────────────────────────────────────
+
+STEP 1: Create the folder structure
+   In cPanel File Manager:
+   1. Navigate to public_html
+   2. Create folder: "justtrying" (or any name you like)
+   3. Inside that, create subfolders:
+      • categories
+      • scores
+      • music (and inside music: focus, relaxing, motivational, field, hold)
+
+
+STEP 2: Upload files
+   • index.html        → public_html/justtrying/index.html
+                         (rename justtrying.html to index.html for clean URL)
+   • manifest.json     → public_html/justtrying/manifest.json
+   • All CSV files     → public_html/justtrying/categories/
+   • Score txt files   → public_html/justtrying/scores/
+   • Music files       → public_html/justtrying/music/<category>/
+
+
+STEP 3: Edit manifest.json
+   This file tells the app what's on the server. Open it in
+   cPanel File Manager (right-click → Edit) and update:
+
+   {
+     "categories": [
+       "object", "pitch", "sound", "action", "extract",
+       "chord_major", "chord_minor", "pitch_sequence"
+     ],
+     "scores": [
+       { "file": "score1.txt", "name": "My First Score" },
+       { "file": "performance_v2.txt", "name": "Performance v2" }
+     ],
+     "music": {
+       "focus": ["track1.mp3", "ambient.mp3"],
+       "relaxing": ["calm.mp3"],
+       "motivational": [],
+       "field": ["forest.mp3"],
+       "hold": ["hold-music.mp3"]
+     },
+     "defaults": {
+       "duration": "10:00",
+       "voiceRate": 1.0,
+       "musicVolume": 0.3
+     }
+   }
+
+
+STEP 4: Test
+   Visit https://yoursite.com/justtrying/ in Chrome or Edge.
+   You should see:
+   • Categories loaded automatically
+   • Score dropdown populated
+   • Music tracks listed in Music tab
+
+
+✨ WHAT THE APP DOES AUTOMATICALLY
+────────────────────────────────────────────────────────────────
+
+When the user opens the URL:
+   1. App tries to fetch manifest.json
+   2. If found, automatically loads:
+      ✓ All categories from /categories/
+      ✓ Populates score dropdown from /scores/
+      ✓ Registers music tracks from /music/<category>/
+      ✓ Applies default settings
+   3. If a single score is listed, auto-loads it
+   4. Users still set their own API key (stored in their browser)
+
+
+📝 MANAGING SCORES
+────────────────────────────────────────────────────────────────
+
+To add a new score:
+   1. Create a new .txt file with score content
+   2. Upload to /scores/ folder
+   3. Add it to manifest.json:
+      "scores": [
+        { "file": "existing_score.txt", "name": "Existing" },
+        { "file": "new_score.txt", "name": "My New Score" }
+      ]
+   4. Users select from the dropdown on the Main tab
+
+Score file format (same as Python version):
+   00:00
+   object start every 4-6 seconds single
+   
+   00:30
+   pitch start every 3 seconds bursts of 2
+   00:35 GPT: encourage the performer
+   
+   ...
+   
+   05:00
+   end
+   
+   Global:
+   - comment every 30 seconds
+
+
+🎵 MANAGING MUSIC FILES
+────────────────────────────────────────────────────────────────
+
+Supported formats: mp3, wav, m4a, ogg, flac
+
+To add music:
+   1. Upload audio files to /music/<category>/
+   2. Add filenames to manifest.json under the right category
+   3. App will play them randomly when triggered
+
+Example:
+   "music": {
+     "focus": ["focus1.mp3", "focus2.mp3"],
+     "relaxing": ["calm.mp3", "ambient.mp3"],
+     ...
+   }
+
+Note: Use simple filenames (no spaces or special characters)
+      for best compatibility.
+
+
+🔄 UPDATING CONTENT
+────────────────────────────────────────────────────────────────
+
+When you change anything on the server:
+   1. Upload new/modified files
+   2. Update manifest.json
+   3. Users click "Reload Server" button OR refresh the page
+   
+The app caches manifest.json, so users may need to clear cache
+or hard-refresh (Ctrl+Shift+R / Cmd+Shift+R) to see changes.
+
+
+🎯 USERS DON'T NEED TO UPLOAD ANYTHING
+────────────────────────────────────────────────────────────────
+
+When everything is on the server:
+   ✓ User opens URL
+   ✓ Sets API key (one time)
+   ✓ Picks score from dropdown
+   ✓ Clicks Play
+
+That's it! No file uploads needed. Categories, music, and
+scores all load from the server automatically.
+
+
+💡 ALTERNATIVE: USERS CAN STILL UPLOAD
+────────────────────────────────────────────────────────────────
+
+The upload buttons still work alongside server-loaded files.
+Users can add their own music or scores temporarily without
+affecting the server.
+
+Server tracks are tagged "server" in the music list.
+User uploads are tagged "local" and disappear on refresh.
+
+
+❓ TROUBLESHOOTING
+────────────────────────────────────────────────────────────────
+
+Problem: "No manifest.json found" in log
+Solution: Make sure manifest.json is in the same folder as
+         index.html. Check spelling.
+
+Problem: Categories not loading
+Solution: Check that CSV files exist in /categories/ folder.
+         Check filename matches what's in manifest.json.
+         Files must be lowercase: object.csv, not Object.csv
+
+Problem: Scores not showing in dropdown
+Solution: Check that scores are listed in manifest.json.
+         Check that .txt files are in /scores/ folder.
+
+Problem: Music not playing
+Solution: 1. Check audio files are in /music/<category>/
+         2. Check filenames are listed in manifest.json
+         3. Try simple filenames without spaces
+         4. Check file format (mp3 is most reliable)
+
+Problem: 404 errors in browser console
+Solution: File paths are case-sensitive on most web hosts.
+         "Pitch.csv" and "pitch.csv" are different.
+         Use all lowercase to be safe.
+
+
+═══════════════════════════════════════════════════════════════
+
+That's it! Once set up, your collaborators just need to:
+   1. Visit your URL
+   2. Set their API key
+   3. Press Play
+
+═══════════════════════════════════════════════════════════════

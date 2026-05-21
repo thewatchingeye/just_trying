@@ -1,0 +1,233 @@
+00:00
+pitch start every 1-2 seconds
+
+00:20 
+chord_minor start every 3-6 seconds
+
+00:30
+gpt say "How are you managing the task so far?"
+
+00:40 
+chord_major start every 3-6 seconds
+
+00:55
+gpt say "It's going to get a little harder now"
+
+01:00
+pitch stop
+pitch start every 8-12 seconds burst 3-6
+
+01:10
+gpt say "Way to go! You're doing well"
+
+01:20
+chord_minor stop
+chord_minor start every 10-15 seconds burst 2-5
+
+01:35
+gpt say "If this is too fast let me know and I can slow it down"
+
+01:40
+chord_major stop
+chord_major start every 10-15 seconds burst 2-5
+
+01:55
+gpt say "We'll try something different now"
+
+02:00
+pitch stop
+chord_minor stop
+chord_minor start every 8-12 seconds burst 1-4
+chord_major stop
+chord_major start every 8-12 seconds burst 1-4
+object start every 6-10 seconds
+
+02:20
+gpt say "I can also speed things up if you feel this is too easy. Just let me know."
+
+02:40
+object stop
+object start every 4-8 seconds
+
+03:00
+chord_minor stop
+chord_major stop
+object stop
+object start every 8-12 seconds burst 2-4
+sound start every 6-10 seconds
+
+03:10
+gpt say gpt_text.csv
+
+03:30
+sound stop
+sound start every 8-12 seconds burst 2-4
+
+03:35
+gpt say "There's quite a lot to do now, so here's some focus music to help you concentrate." play /focus_music
+
+03:50
+gpt say "We'll start a few parallel activities in a moment. Get ready!"
+
+04:00
+object stop
+sound stop
+action start every 10-15 seconds
+
+04:05
+gpt say "device 1 on"
+
+04:20
+gpt say gpt_text.csv
+
+04:30
+gpt say "device 1 on"
+
+04:40
+gpt say "start playing a slow chromatic scale starting on the lowest key of the piano and ending on the highest using only one finger"
+action stop
+action start every 8-12 seconds
+
+04:55
+stop /focus_music  
+
+05:00
+stop object
+stop sound
+
+05:10
+gpt say "Here's a really great song to keep you motivated." play /motivational_music/eye_of_the_tiger.mp3
+
+05:35
+gpt say "start dropping objects into the box"
+
+05:40
+pitch start every 3-5 seconds
+
+05:55
+gpt say "stop chromatic scale"
+stop /motivational_music/eye_of_the_tiger.mp3
+
+06:00
+action stop
+
+06:10
+gpt say "device 3 on"
+
+06:15
+gpt say "We'll gradually add a few more things to do now. Don't stop dropping the objects though."
+
+06:20
+object start every 3-5 seconds
+
+06:30
+gpt say gpt_text.csv
+
+06:40
+chord_minor start every 3-5 seconds
+
+06:45
+gpt say "device 2 off"
+
+06:50
+gpt say "Let's tighten things up a bit, so start the metronome and synchronise all sounds with the pulse"
+
+07:00 
+pitch stop
+sound start every 3-5 seconds
+gpt say gpt_text.csv
+
+07:15
+gpt say "device 1 off"
+
+07:20
+chord_major start every 3-5 seconds
+
+07:35
+gpt say "device 3 off"
+
+07:40
+object stop
+action start every 8-12 seconds
+pitch_sequence start every 10-15 seconds
+
+07:50 
+gpt say "If at any point things get too much just tell me to pause."
+
+08:00
+gpt say "stop dropping objects"
+chord_minor stop
+
+08:20
+sound stop
+
+08:30
+gpt say "stop metronome"
+
+08:40
+chord_minor stop
+chord_major stop
+pitch_sequence stop
+action stop
+extract start every 10-15 seconds
+
+09:05
+gpt say "It's lovely to hear you play. You're really good."
+
+09:20 
+extract stop
+extract start every 8-12 seconds
+
+09:25
+gpt say "Do you like playing this music?"
+
+09:40 
+sound start every 5-10 seconds
+
+10:00
+extract stop
+extract start every 3-5 seconds
+
+10:40
+sound stop
+extract stop
+gpt say "OK, let's take a break. Here's some relaxing birdsong so you can unwind for a bit." play /field_recordings/woodland.wav
+
+10:55
+gpt say "Everything OK so far? Any questions?"
+
+11:05
+gpt say "When we start again soon it is going to get really difficult"
+
+11:15
+gpt say "We'll start again very soon"
+
+11:25
+gpt say "Not long now, are you ready?"
+
+11:35
+gpt say "Any second!"
+
+11:40
+pitch start every 1-3 seconds
+chord_minor start every 1-3 seconds
+chord_major start every 1-3 seconds
+action start every 8-12 seconds
+
+12:00
+object start every 1-3 seconds
+sound start every 1-3 seconds
+
+12:20
+gpt say gpt_text.csv
+
+12:40
+END
+
+
+
+
+
+
+
+

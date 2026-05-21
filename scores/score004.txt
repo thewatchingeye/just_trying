@@ -1,0 +1,104 @@
+00:00
+pitch start every 5-7 seconds single
+chord_major add every 12-15 seconds single
+
+00:30
+pitch start every 5-7 seconds single
+chord_major add every 11-14 seconds single
+object add every 14-17 seconds single
+
+00:35
+gpt say gpt_text.csv
+
+01:00
+sound add every 13-16 seconds single
+action add every 20-24 seconds single
+
+01:30
+extract add every 20-25 seconds single
+chord_minor add every 14-17 seconds single
+pitch_sequence add every 30-40 seconds single
+
+02:00
+all stop
+pitch only every 4-6 seconds burst 3-5
+
+02:45
+all stop
+sound start every 8-11 seconds single
+chord_major add every 11-14 seconds single
+chord_minor add every 12-15 seconds single
+pitch add every 9-12 seconds single
+
+02:35
+gpt say gpt_text.csv
+
+03:30
+all stop
+chord_minor only every 4-6 seconds single
+
+04:15
+all stop
+pitch start every 7-10 seconds single
+sound add every 9-12 seconds single
+object add every 10-13 seconds single
+action add every 16-20 seconds single
+pitch_sequence add every 30-40 seconds single
+
+05:00
+all stop
+object only every 5-7 seconds single
+
+05:35
+gpt say gpt_text.csv
+
+05:45
+all stop
+sound start every 7-10 seconds single
+pitch add every 8-11 seconds single
+chord_major add every 10-13 seconds single
+chord_minor add every 11-14 seconds single
+
+07:00
+all stop
+extract only every 5-7 seconds single
+
+07:45
+all stop
+pitch start every 8-11 seconds single
+chord_major add every 10-13 seconds single
+chord_minor add every 11-14 seconds single
+sound add every 9-12 seconds single
+pitch_sequence add every 30-40 seconds single
+
+08:30
+all stop
+pitch_sequence only every 12-16 seconds single
+
+08:35
+gpt say gpt_text.csv
+
+09:15
+all stop
+pitch start every 8-11 seconds single
+chord_major start every 10-13 seconds single
+chord_minor add every 11-14 seconds single
+
+
+
+10:00
+end
+
+Global:
+- describe the texture of what is happening musically in one short sentence
+- ask the performer if they are finding focus or letting go
+- offer a one-line image or metaphor for the sound
+- ask how you can help the performer with the tasks
+- comment on the contrast between dense and sparse moments
+- ask whether the performer is following the cues or making their own path
+- describe a single shape or gesture you hear in the music
+- ask if a passage feels heavy or light, near or far
+- comment on a moment that stood out
+- ask what the performer is noticing about their playing
+- be conversational - respond with interest to whatever the performer says
+- keep your comments brief - 1 short sentence - and let the performer lead

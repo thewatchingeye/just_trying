@@ -1,0 +1,42 @@
+{
+  "_comment": "Edit this file to tell the app what's available on your server. Re-upload after changes.",
+  
+  "categories": [
+    "object",
+    "pitch",
+    "sound",
+    "action",
+    "extract",
+    "chord_major",
+    "chord_minor",
+    "pitch_sequence"
+  ],
+  
+  "scores": [
+    { "file": "score001.txt", "name": "score001" },
+    { "file": "score002.txt", "name": "score002" },
+    { "file": "score003.txt", "name": "score003" },
+    { "file": "score004.txt", "name": "score004" },
+    { "file": "score005.txt", "name": "score005" },
+    { "file": "ZK1.txt", "name": "ZK1" },
+    { "file": "setup.txt", "name": "setup" }
+  ],
+  
+  "music": {
+    "focus": ["focus_music1.mp3"],
+    "relaxing": ["Bach.mp3", "Schumann.mp3"],
+    "motivational": ["Beethoven.mp3", "Chopin.mp3", "dont_stop_believin.mp3", "eye_of_the_tiger.mp3"],
+    "field": ["city.wav", "woodland.wav"],
+    "hold": ["bossanova.wav"]
+  },
+  
+  "gpt_texts": [
+    "gpt_text.csv"
+  ],
+  
+  "defaults": {
+    "duration": "05:00",
+    "voiceRate": 1.0,
+    "musicVolume": 0.3
+  }
+}

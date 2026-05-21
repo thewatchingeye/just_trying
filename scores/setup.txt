@@ -1,0 +1,76 @@
+00:00
+gpt say "This score will test each of the categories in turn."
+
+00:05
+gpt say "Pitches"
+pitch start every 1-2 seconds
+
+00:20
+pitch stop
+gpt say "Major chords"
+chord_major start every 1-2 seconds
+
+00:35
+chord_major stop
+gpt say "Minor chords"
+chord_minor start every 1-2 seconds
+
+00:50
+chord_minor stop
+gpt say "Objects"
+object start every 1-2 seconds
+
+01:05
+object stop
+gpt say "Sounds"
+sound start every 1-2 seconds
+
+01:20
+sound stop
+gpt say "Extracts"
+extract start every 7 seconds
+
+01:35
+extract stop
+gpt say "Actions"
+action start every 7 seconds
+
+01:50
+action stop
+gpt say "Pitch sequence"
+pitch_sequence start every 7 seconds
+
+02:05
+pitch_sequence stop
+gpt say "Focus music"
+play focus_music
+
+02:20
+focus music stop
+gpt say "Motivational music"
+play motivational music
+
+02:35
+motivational music stop
+gpt say "Relaxing music"
+play relaxing music
+
+02:50
+relaxing music stop
+gpt say "Hold music"
+play hold music
+
+03:05
+hold music stop 
+gpt say "Field recording"
+play field recording
+
+03:20
+field recording stop 
+gpt say "Conversation test. How are you today?"
+
+03:59
+gpt say "END"
+
+04:00
+END

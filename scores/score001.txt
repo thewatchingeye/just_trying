@@ -1,0 +1,56 @@
+00:00
+pitch start every 5-7 seconds single
+chord_major add every 8-12 seconds single
+
+
+
+00:45
+pitch start every 5-7 seconds single
+chord_major add every 10-13 seconds single
+chord_minor add every 14-17 seconds single
+
+01:30
+pitch start every 5-7 seconds single
+chord_major add every 9-12 seconds single
+chord_minor add every 12-15 seconds single
+pitch_sequence add every 35-45 seconds single
+
+02:45
+gpt say gpt_text.csv
+
+03:00
+all stop
+chord_minor start every 8-11 seconds single
+chord_major add every 9-12 seconds single
+pitch add every 7-10 seconds single
+
+04:30
+all stop
+pitch start every 5-7 seconds single
+chord_major add every 11-14 seconds single
+pitch_sequence add every 30-40 seconds single
+
+05:20
+all stop
+chord_major start every 9-12 seconds single
+chord_minor add every 10-13 seconds single
+
+05:50 GPT: Tell the performer to let the last chords settle. Thank them.
+
+06:00
+end
+
+Global:
+- ask the performer a quiet question about presence, attention, or being alive
+- pose a small reflective question about meaning in this moment
+- ask what the performer notices in the current passage
+- ask what in their life is asking to slow down
+- ask the performer about silences that carry meaning for them
+- pose a question about the essence of a thing
+- ask about what is most alive in this moment for them
+- offer a brief observation about the music, then ask how they feel about it
+- describe what you sense in the texture and ask if it resonates
+- ask whether the music feels like an answer or a question
+- be conversational and curious - respond to whatever the performer says with genuine interest
+- ask follow-up questions when the performer speaks
+- keep your comments brief - 1 short sentence - and let the performer lead

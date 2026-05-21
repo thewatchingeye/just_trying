@@ -1,0 +1,12 @@
+00:00
+pitch start every 1-2 seconds
+chord_major start every 2-4 seconds
+chord_minor start every 2-4 seconds
+
+00:30
+pitch stop
+chord_major stop
+chord_minor stop
+
+00:40
+END

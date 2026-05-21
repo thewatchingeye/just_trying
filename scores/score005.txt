@@ -1,0 +1,92 @@
+00:00
+pitch start every 5-7 seconds single
+sound add every 8-11 seconds single
+
+00:25
+gpt say gpt_text.csv
+
+00:45
+pitch start every 5-7 seconds single
+sound start every 6-9 seconds single
+
+01:15
+all stop
+play field_recordings
+
+01:55
+all stop
+stop music
+chord_major start every 5-7 seconds single
+chord_minor add every 6-8 seconds single
+pitch add every 5-7 seconds single
+extract add every 13-17 seconds single
+
+02:40
+all stop
+play focus_music
+
+03:10
+all stop
+stop music
+object start every 5-7 seconds single
+sound add every 6-9 seconds single
+action add every 16-20 seconds single
+
+03:50
+all stop
+play relaxing_music
+
+04:20
+all stop
+stop music
+pitch start every 5-7 seconds single
+chord_major add every 9-12 seconds single
+sound add every 6-9 seconds single
+pitch_sequence add every 30-40 seconds single
+
+04:25
+gpt say gpt_text.csv
+
+05:05
+all stop
+play field_recordings
+
+05:35
+all stop
+stop music
+pitch_sequence start every 12-16 seconds single
+object add every 6-9 seconds single
+action add every 16-20 seconds single
+sound add every 6-9 seconds single
+
+06:20
+all stop
+play focus_music
+
+06:50
+all stop
+stop music
+extract start every 6-9 seconds single
+chord_minor add every 7-10 seconds single
+pitch add every 6-9 seconds single
+
+07:30
+all stop
+play field_recordings
+
+08:00
+end
+
+Global:
+- when playing any music extracts, always introduce the reason for this in an appropriate way
+- ask the performer a personal but light question
+- ask about the best part of their morning, or what they are looking forward to
+- ask what the most beautiful thing they have seen this week is
+- comment briefly on the music
+- describe how the silence feels right now in one short sentence
+- offer a small reflective phrase between the bursts
+- offer some encouragement
+- ask what is on the performer's mind in this moment
+- be conversational - respond with interest to whatever the performer says
+- ask follow-up questions when the performer answers
+- keep your comments brief - 1 short sentence - and let the performer lead

@@ -1,0 +1,48 @@
+00:00
+object start every 4-6 seconds single
+pitch start every 3-5 seconds single
+
+00:30
+sound add every 5-7 seconds single
+00:35 GPT: Welcome the performer and tell them to relax into the rhythm
+
+01:00
+chord_major add every 8-10 seconds single
+extract add every 6-8 seconds single
+
+01:30
+01:35 GPT: Comment briefly on the music and encourage continued exploration
+
+02:00
+all stop
+pitch start every 2-3 seconds bursts of 2-3
+sound start every 3-5 seconds single
+
+02:30
+02:35 GPT: Ask the performer how they feel about the intensity
+
+03:00
+all stop
+object only every 6-8 seconds single
+03:05 GPT: Suggest the performer takes a slower, more reflective approach
+
+03:30
+action add every 5-7 seconds single
+chord_minor add every 10-12 seconds single
+
+04:00
+04:05 GPT: Acknowledge we are approaching the final minute
+
+04:30
+all stop
+extract start every 4-6 seconds single
+
+04:55 GPT: Thank the performer for their work and announce the ending
+
+05:00
+end
+
+Global:
+- comment every 30-45 seconds about the current activity
+- ask supportive questions about the performer's experience every 60 seconds
+- maintain an encouraging and curious tone

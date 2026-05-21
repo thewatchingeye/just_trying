@@ -1,0 +1,32 @@
+00:00
+pitch start every 2-4 seconds
+
+00:10
+chord_major start every 4-6 seconds
+chord_minor start every 4-6 seconds
+
+
+00:20
+pitch stop
+object start every 4-6 seconds
+
+00:25
+sound start every 4-6 seconds
+
+00:30
+chord_major stop
+chord_minor stop
+
+00:35
+action start every 3 seconds
+object stop
+sound stop
+
+00:40
+action stop
+
+00:44
+gpt say "END"
+
+00:45
+END

@@ -1,0 +1,73 @@
+00:00
+action start every 8-11 seconds single
+extract add every 18-22 seconds single
+
+00:25
+gpt say gpt_text.csv
+
+00:35
+gpt say "here is some relaxing music. I hope it helps you stay calm"
+play relaxing_music
+
+01:10
+action start every 9-12 seconds single
+
+01:25 
+gpt say gpt_text.csv
+
+02:00
+stop music
+gpt say "Things are getting more tense now, so here's some motivational music to help you"
+play motivational_music
+pitch start every 5-7 seconds single
+chord_major add every 12-15 seconds single
+
+02:30
+action start every 9-12 seconds single
+
+03:00
+stop music
+play focus_music
+
+03:45
+action start every 10-13 seconds single
+
+04:00
+stop music
+pitch stop
+chord_major stop
+
+04:30
+action start every 9-12 seconds single
+sound add every 14-17 seconds single
+
+05:00
+gpt say "You might like to listen to the sounds of the outside world. It might help you relax when completing the tasks."
+play field_recordings
+
+05:30
+action start every 8-11 seconds single
+
+06:00
+stop music
+
+06:45
+gpt say "Here's some relaxing music. It is super chilled I hope"
+play relaxing_music
+
+07:30
+stop music
+action start every 10-13 seconds single
+
+07:55 GPT: Thank the performer warmly.
+
+08:00
+end
+
+Global:
+- request a particular mood or character (gentle, tender, urgent, dreamlike, dark)
+- comment briefly on what the performer just played and ask how it felt
+- ask what the music is making the performer think about
+- ask if the performer wants the music to continue or change
+- be conversational - respond to the performer's choices with curiosity
+- keep your comments brief - 1 short sentence - and let the performer lead

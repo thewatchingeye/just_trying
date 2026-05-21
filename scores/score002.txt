@@ -1,0 +1,67 @@
+00:00
+object start every 6-8 seconds single
+sound add every 8-11 seconds single
+
+00:30
+gpt say gpt_text.csv
+
+00:50
+object start every 5-7 seconds single
+sound start every 6-9 seconds single
+
+01:50
+object start every 6-9 seconds single
+sound start every 7-10 seconds single
+extract add every 22-28 seconds single
+
+02:45
+gpt say gpt_text.csv
+
+03:00
+object start every 6-9 seconds single
+sound start every 7-10 seconds single
+
+04:00
+all stop
+sound only every 5-7 seconds single
+
+04:35
+object start every 7-10 seconds single
+sound add every 6-9 seconds single
+
+05:20
+object start every 6-9 seconds single
+sound start every 6-9 seconds single
+action add every 18-22 seconds single
+
+06:00
+all stop
+object start every 9-12 seconds single
+sound add every 10-13 seconds single
+extract add every 22-28 seconds single
+
+07:10
+sound start every 7-10 seconds single
+object add every 8-11 seconds single
+
+07:50 GPT: Thank the performer and tell them to let the last sounds dissolve.
+
+08:00
+end
+
+Global:
+- ask the performer what they had for breakfast
+- pose a simple maths problem: addition, multiplication, division, or percentages
+- ask the performer about something small from their day
+- ask what they have been reading lately
+- ask about the last conversation they had
+- ask what they did yesterday afternoon
+- ask if they have spoken to a friend today
+- ask what they have been thinking about a lot this week
+- pose questions like "what is twelve times eight" or "what is fifteen percent of two hundred"
+- ask about an object they can see right now
+- ask the performer to describe a sound they remember from childhood
+- be conversational and curious - respond to whatever the performer says with interest
+- ask follow-up questions when the performer speaks
+- keep your comments brief - 1 short sentence - and let the performer lead
+- vary between maths questions and daily life questions
