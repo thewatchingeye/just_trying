@@ -139,6 +139,7 @@
       </div>
       
       <div class="tab-content active" id="tab-main">
+        <div id="rehearsalScoreNote" style="display:none; font-size:12px; color:#fd882b; font-style:italic; padding: 6px 2px 2px 2px;">Deactivate Rehearsal Mode to use a score.</div>
         <div class="section" id="scoreSection">
           <div class="section-title">SCORE</div>
           <select id="scoreSelect" onchange="app.loadServerScore(this.value)" style="display:none; margin-bottom: 4px;">
@@ -247,8 +248,32 @@
       
       <div class="tab-content" id="tab-settings">
         <div style="background: #e8f4f8; border: 1px solid #1a6f76; padding: 6px 10px; border-radius: 4px; font-size: 11px; color: #1a6f76;">
-          Build v20 — phantom voice filter + TTS suppression
+          Build v22 — audio device selector + mic level
         </div>
+        <div class="section">
+          <div class="section-title">AUDIO DEVICES</div>
+          <div class="info-text" style="margin-bottom:6px;">Device labels appear after mic permission is granted. <a href="#" onclick="app.populateAudioDevices(); return false;" style="color:#1a6f76;">Refresh</a></div>
+          <div class="section-row" style="align-items:center; gap:8px; margin-bottom:6px; font-size:12px;">
+            <span style="width:80px; flex-shrink:0;">Input (Mic)</span>
+            <select id="inputDeviceSelect" onchange="app.setInputDevice(this.value)" style="flex:1; font-size:12px;">
+              <option value="">Default</option>
+            </select>
+          </div>
+          <div class="section-row" style="align-items:center; gap:8px; margin-bottom:6px; font-size:12px;">
+            <span style="width:80px; flex-shrink:0;">Output</span>
+            <select id="outputDeviceSelect" onchange="app.setOutputDevice(this.value)" style="flex:1; font-size:12px;">
+              <option value="">Default</option>
+            </select>
+          </div>
+          <div id="outputDeviceNote" class="info-text" style="display:none; color:#a33;">Output device selection not supported in this browser (Chrome/Edge only).</div>
+          <div class="slider-row">
+            <span>Mic Level</span>
+            <input type="range" id="micGainSlider" min="0.1" max="3.0" step="0.1" value="1.0" oninput="app.setMicGain(this.value)">
+            <span id="micGainValue">1.0</span>
+          </div>
+          <div class="info-text">Mic Level boosts or attenuates the microphone signal — adjust if Whisper is missing quiet speech or triggering on room noise.</div>
+        </div>
+
         <div class="section">
           <div class="section-title">VOLUME SETTINGS</div>
           <div class="slider-row">
@@ -460,7 +485,12 @@ class JustTryingApp {
       pitchAudioContext: null,
       rehearsalMode: false,
       rehearsalAIVoice: true,
-      rehearsalCategories: Object.fromEntries(VOICE_CATEGORIES.map(c => [c.key, { enabled: false, min: 3, max: 7 }]))
+      rehearsalCategories: Object.fromEntries(VOICE_CATEGORIES.map(c => [c.key, { enabled: false, min: 3, max: 7 }])),
+      inputDeviceId: '',
+      outputDeviceId: '',
+      micGain: 1.0,
+      micGainNode: null,
+      micRecordStream: null
     };
     this.init();
   }
@@ -498,6 +528,14 @@ class JustTryingApp {
     if (!this.state.apiKey) this.showApiKeyModal();
     else this.log('API key loaded.', 'info');
 
+    // Restore mic gain slider
+    const micGainSlider = document.getElementById('micGainSlider');
+    if (micGainSlider) {
+      micGainSlider.value = this.state.micGain;
+      document.getElementById('micGainValue').textContent = this.state.micGain.toFixed(1);
+    }
+    this.populateAudioDevices();
+
     this.buildRehearsalCategoryList();
     // Restore rehearsal mode UI state if it was saved on
     if (this.state.rehearsalMode) {
@@ -505,6 +543,8 @@ class JustTryingApp {
       document.getElementById('rehearsalControls').style.display = 'block';
       const scoreSection = document.getElementById('scoreSection');
       if (scoreSection) scoreSection.classList.add('section-greyed');
+      const note = document.getElementById('rehearsalScoreNote');
+      if (note) note.style.display = 'block';
     }
     if (!this.state.rehearsalAIVoice) {
       const el = document.getElementById('rehearsalAIVoiceToggle');
@@ -893,19 +933,21 @@ class JustTryingApp {
     try {
       // Disable autoGainControl - it dynamically changes mic levels and breaks calibration.
       // echoCancellation helps reduce speaker bleed; noiseSuppression helps reject ambient noise.
-      this.state.audioStream = await navigator.mediaDevices.getUserMedia({ 
-        audio: { 
-          echoCancellation: true, 
-          noiseSuppression: true,
-          autoGainControl: false  // CRITICAL: AGC ruins level-based calibration
-        } 
-      });
+      const audioConstraints = {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: false  // CRITICAL: AGC ruins level-based calibration
+      };
+      if (this.state.inputDeviceId) audioConstraints.deviceId = { exact: this.state.inputDeviceId };
+      this.state.audioStream = await navigator.mediaDevices.getUserMedia({ audio: audioConstraints });
       this.state.micEnabled = true;
-      
+
       const btn = document.getElementById('micBtn');
       btn.textContent = 'Listening...';
       btn.classList.add('listening');
       this.log('Voice recognition enabled (Whisper).', 'system');
+      // Re-enumerate now that mic permission is granted (labels become available)
+      this.populateAudioDevices();
       
       this.startVoiceActivityDetection();
     } catch (e) {
@@ -920,11 +962,25 @@ class JustTryingApp {
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     this.state.audioContext = new AudioCtx();
     const source = this.state.audioContext.createMediaStreamSource(this.state.audioStream);
+
+    // Mic gain node — lets the in-app Mic Level slider boost/attenuate the signal
+    // for both VAD detection and Whisper transcription.
+    const gainNode = this.state.audioContext.createGain();
+    gainNode.gain.value = this.state.micGain || 1.0;
+    source.connect(gainNode);
+    this.state.micGainNode = gainNode;
+
+    // Route processed stream to a MediaStreamDestination so MediaRecorder
+    // picks up the gain-adjusted audio rather than the raw getUserMedia stream.
+    const micStreamDest = this.state.audioContext.createMediaStreamDestination();
+    gainNode.connect(micStreamDest);
+    this.state.micRecordStream = micStreamDest.stream;
+
     const analyser = this.state.audioContext.createAnalyser();
     analyser.fftSize = 2048;
     analyser.smoothingTimeConstant = 0.5;
-    source.connect(analyser);
-    
+    gainNode.connect(analyser);
+
     // Store analyser so calibration & other features can use it
     this.state.vadAnalyser = analyser;
     
@@ -1003,9 +1059,10 @@ class JustTryingApp {
           chunks = [];
           
           try {
-            const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 
+            const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' :
                             MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : 'audio/ogg';
-            mediaRecorder = new MediaRecorder(this.state.audioStream, { mimeType });
+            const recordStream = this.state.micRecordStream || this.state.audioStream;
+            mediaRecorder = new MediaRecorder(recordStream, { mimeType });
             
             mediaRecorder.ondataavailable = (e) => {
               if (e.data.size > 0) chunks.push(e.data);
@@ -1667,6 +1724,9 @@ class JustTryingApp {
       if (ct) this.state.calibratedThreshold = parseFloat(ct);
       const cd = localStorage.getItem('jt_calibrationDetails');
       if (cd) this.state.calibrationDetails = JSON.parse(cd);
+      this.state.inputDeviceId = localStorage.getItem('jt_inputDeviceId') || '';
+      this.state.outputDeviceId = localStorage.getItem('jt_outputDeviceId') || '';
+      this.state.micGain = parseFloat(localStorage.getItem('jt_micGain') || '1.0');
     } catch (e) {}
   }
   
@@ -1682,9 +1742,72 @@ class JustTryingApp {
       if (this.state.calibrationDetails) {
         localStorage.setItem('jt_calibrationDetails', JSON.stringify(this.state.calibrationDetails));
       }
+      localStorage.setItem('jt_inputDeviceId', this.state.inputDeviceId || '');
+      localStorage.setItem('jt_outputDeviceId', this.state.outputDeviceId || '');
+      localStorage.setItem('jt_micGain', String(this.state.micGain || 1.0));
     } catch (e) {}
   }
   
+  async populateAudioDevices() {
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const inputSelect = document.getElementById('inputDeviceSelect');
+      const outputSelect = document.getElementById('outputDeviceSelect');
+      const outputNote = document.getElementById('outputDeviceNote');
+
+      const inputs = devices.filter(d => d.kind === 'audioinput');
+      inputSelect.innerHTML = '<option value="">Default</option>' +
+        inputs.map((d, i) => `<option value="${d.deviceId}">${d.label || `Microphone ${i + 1}`}</option>`).join('');
+      inputSelect.value = this.state.inputDeviceId || '';
+
+      const outputs = devices.filter(d => d.kind === 'audiooutput');
+      if ('setSinkId' in HTMLAudioElement.prototype) {
+        outputSelect.innerHTML = '<option value="">Default</option>' +
+          outputs.map((d, i) => `<option value="${d.deviceId}">${d.label || `Speaker ${i + 1}`}</option>`).join('');
+        outputSelect.value = this.state.outputDeviceId || '';
+        outputSelect.disabled = false;
+        if (outputNote) outputNote.style.display = 'none';
+      } else {
+        outputSelect.disabled = true;
+        if (outputNote) outputNote.style.display = '';
+      }
+    } catch (e) {
+      this.log(`Device enumeration failed: ${e.message}`, 'error');
+    }
+  }
+
+  async setInputDevice(deviceId) {
+    this.state.inputDeviceId = deviceId;
+    localStorage.setItem('jt_inputDeviceId', deviceId);
+    if (this.state.micEnabled) {
+      await this.toggleMic();
+      await this.toggleMic();
+    }
+  }
+
+  async setOutputDevice(deviceId) {
+    this.state.outputDeviceId = deviceId;
+    localStorage.setItem('jt_outputDeviceId', deviceId);
+    const ctx = this.state.ttsAudioContext;
+    if (ctx && ctx.setSinkId) {
+      ctx.setSinkId(deviceId || '').catch(() => {});
+    }
+    if (this.state.currentMusic && this.state.currentMusic.setSinkId) {
+      this.state.currentMusic.setSinkId(deviceId || '').catch(() => {});
+    }
+    if (this.state.currentHoldMusic && this.state.currentHoldMusic.setSinkId) {
+      this.state.currentHoldMusic.setSinkId(deviceId || '').catch(() => {});
+    }
+  }
+
+  setMicGain(value) {
+    const gain = parseFloat(value);
+    this.state.micGain = gain;
+    document.getElementById('micGainValue').textContent = gain.toFixed(1);
+    if (this.state.micGainNode) this.state.micGainNode.gain.value = gain;
+    localStorage.setItem('jt_micGain', String(gain));
+  }
+
   showApiKeyModal() {
     document.getElementById('apiKeyInput').value = this.state.apiKey;
     document.getElementById('apiKeyModal').classList.add('active');
@@ -1982,6 +2105,9 @@ class JustTryingApp {
     const audio = new Audio(track.url);
     audio.volume = this.state.musicVolume;
     audio.loop = false;
+    if (this.state.outputDeviceId && audio.setSinkId) {
+      audio.setSinkId(this.state.outputDeviceId).catch(() => {});
+    }
     audio.onended = () => {
       if (this.state.currentMusicCategory === category && this.state.running) this.playMusic(category);
     };
@@ -2009,6 +2135,9 @@ class JustTryingApp {
     const audio = new Audio(track.url);
     audio.volume = parseFloat(document.getElementById('musicVolSlider').value);
     audio.loop = true;
+    if (this.state.outputDeviceId && audio.setSinkId) {
+      audio.setSinkId(this.state.outputDeviceId).catch(() => {});
+    }
     audio.play().catch(e => this.log(`Failed to play hold music: ${e.message}`, 'error'));
     this.state.currentHoldMusic = audio;
     this.log(`Hold music: ${track.name}`, 'music');
@@ -2436,18 +2565,9 @@ class JustTryingApp {
     this.state.rehearsalMode = on;
     document.getElementById('rehearsalControls').style.display = on ? 'block' : 'none';
     const scoreSection = document.getElementById('scoreSection');
-    if (scoreSection) {
-      scoreSection.classList.toggle('section-greyed', on);
-      let note = document.getElementById('rehearsalScoreNote');
-      if (on && !note) {
-        note = document.createElement('div');
-        note.id = 'rehearsalScoreNote';
-        note.style.cssText = 'font-size:11px;color:#fd882b;margin-top:6px;font-style:italic;';
-        note.textContent = 'Turn off Rehearsal Mode to use a score.';
-        scoreSection.appendChild(note);
-      }
-      if (note) note.style.display = on ? 'block' : 'none';
-    }
+    if (scoreSection) scoreSection.classList.toggle('section-greyed', on);
+    const note = document.getElementById('rehearsalScoreNote');
+    if (note) note.style.display = on ? 'block' : 'none';
     this.saveRehearsalSettings();
     this.log(`Rehearsal mode ${on ? 'on' : 'off'}.`, 'system');
   }
@@ -2815,6 +2935,9 @@ class JustTryingApp {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       this.state.ttsAudioContext = new AudioCtx();
       this.state.ttsImpulseResponse = this.generateImpulseResponse();
+      if (this.state.outputDeviceId && this.state.ttsAudioContext.setSinkId) {
+        this.state.ttsAudioContext.setSinkId(this.state.outputDeviceId).catch(() => {});
+      }
     }
     // Resume if suspended (Chrome/Safari autoplay policy may suspend it)
     if (this.state.ttsAudioContext.state === 'suspended') {
