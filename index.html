@@ -248,7 +248,7 @@
       
       <div class="tab-content" id="tab-settings">
         <div style="background: #e8f4f8; border: 1px solid #1a6f76; padding: 6px 10px; border-radius: 4px; font-size: 11px; color: #1a6f76;">
-          Build v24 — voice type selectors, mic input priority fix
+          Build v25 — mic priority + browser TTS fixes
         </div>
         <div class="section">
           <div class="section-title">AUDIO DEVICES</div>
@@ -1041,8 +1041,12 @@ class JustTryingApp {
       }
       const avgVolume = count > 0 ? sum / count : 0;
       
-      // Use slightly higher threshold when music is playing
-      const effectiveThreshold = musicPlaying ? VOICE_THRESHOLD * 1.5 : VOICE_THRESHOLD;
+      // Raise threshold when browser TTS is speaking — it bleeds ~25x more than OpenAI TTS
+      // and bypasses echo cancellation, so without this the VAD records continuous bleed.
+      const browserTTSSpeaking = speechSynthesis.speaking || speechSynthesis.pending;
+      const effectiveThreshold = VOICE_THRESHOLD *
+        (musicPlaying ? 1.5 : 1.0) *
+        (browserTTSSpeaking ? 4.0 : 1.0);
       
       const now = Date.now();
       
@@ -1109,13 +1113,14 @@ class JustTryingApp {
   }
   
   async transcribeWithWhisper(audioBlob) {
-    // Suppress only during the brief bleed tail after TTS ends, not while it's playing.
-    // This allows the user to speak over or just after category cues.
+    // Suppress only during the bleed tail after TTS ends.
+    // AI lastAISpeechEnd is set at actual end (not start), so this only covers the reverb tail.
+    // Browser/category bleed: covered by threshold multiplier in VAD + short post-end window.
     const now = Date.now();
-    const aiTTSActive = now < (this.state.lastAISpeechEnd || 0) + 400;
+    const aiBleed = now < (this.state.lastAISpeechEnd || 0) + 200;
     const catBleed = now < (this.state.lastCategoryTTSEnd || 0) + 250;
-    const browserBleed = now < (this.state.lastBrowserTTSEnd || 0) + 400;
-    if (aiTTSActive || catBleed || browserBleed) return;
+    const browserBleed = speechSynthesis.speaking || now < (this.state.lastBrowserTTSEnd || 0) + 400;
+    if (aiBleed || catBleed || browserBleed) return;
 
     try {
       const formData = new FormData();
@@ -3141,12 +3146,9 @@ class JustTryingApp {
       volumeNode.connect(ctx.destination);
       
       if (options.isAI) this.trackAISpeech(text);
-      
-      const duration = audioBuffer.duration * 1000;
-      this.state.lastAISpeechEnd = Date.now() + duration;
-      
+
       source.start();
-      
+
       return new Promise(resolve => {
         source.onended = () => {
           if (!options.isAI) {
@@ -3157,6 +3159,8 @@ class JustTryingApp {
               this.state.currentTTSSource = null;
               this.state.currentlyPlayingPriority = null;
             }
+            // Mark actual end time so mic suppression only covers the reverb tail
+            this.state.lastAISpeechEnd = Date.now();
           }
           resolve();
         };
@@ -3176,6 +3180,11 @@ class JustTryingApp {
   }
   
   speakBrowser(text, category) {
+    // Chrome can transiently empty getVoices() after enumerateDevices(); reload if needed.
+    if (this.state.voices.length === 0) {
+      const fresh = speechSynthesis.getVoices();
+      if (fresh.length > 0) { this.state.voices = fresh; this.populateVoiceDropdowns(); }
+    }
     const utterance = new SpeechSynthesisUtterance(text);
     const voiceName = this.state.voiceAssignments[category];
     if (voiceName) {
@@ -3187,7 +3196,11 @@ class JustTryingApp {
     utterance.volume = Math.min(1.0, parseFloat(document.getElementById('volumeSlider').value));
     utterance.pitch = 1.0;
     utterance.onend = () => { this.state.lastBrowserTTSEnd = Date.now(); };
-    utterance.onerror = () => { this.state.lastBrowserTTSEnd = Date.now(); };
+    utterance.onerror = (e) => {
+      this.state.lastBrowserTTSEnd = Date.now();
+      if (e.error !== 'interrupted') this.log(`Browser TTS error: ${e.error} — "${text}"`, 'error');
+    };
+    this.log(`[Browser TTS] ${category}: "${text}"`, 'system');
     speechSynthesis.speak(utterance);
   }
   
