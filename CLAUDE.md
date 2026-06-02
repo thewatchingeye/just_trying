@@ -35,9 +35,10 @@ All code lives inside `index.html` in a single `<script>` block.
 
 ## Current build
 
-**Build v14** — bulletproof extract normalization (line 227 of index.html)
+**Build v29** — voice type selectors, mic priority (no device settings)
 
 Bump the build banner string when shipping a change so the user can confirm cache-busting.
+After every build, copy `index.html` to `versions/index_vXX.html` and commit both.
 
 ## Key functions
 
