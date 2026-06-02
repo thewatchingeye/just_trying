@@ -1,0 +1,3393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>just trying to do what I'm told and keep up and do the best that I can / James Saunders (2025)</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #ffffff; color: #333; font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif; padding: 20px; min-height: 100vh; }
+  .container { max-width: 1200px; margin: 0 auto; background: white; }
+  .top-section { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; flex-wrap: wrap; gap: 20px; }
+  .timer-section { flex: 1; min-width: 300px; }
+  .timer { font-family: "DIN Alternate", "Helvetica Neue Condensed", sans-serif; font-size: 80px; font-weight: bold; color: #1a6f76; line-height: 1; letter-spacing: -2px; }
+  .transport-buttons { display: flex; gap: 6px; margin-top: 14px; flex-wrap: wrap; }
+  .btn { background: white; color: black; border: 1px solid #ccc; padding: 8px 18px; font-size: 14px; cursor: pointer; font-family: inherit; transition: background 0.15s; border-radius: 3px; }
+  .btn:hover:not(:disabled) { background: #f0f0f0; }
+  .btn:active:not(:disabled) { background: #e0e0e0; }
+  .btn:disabled { color: #aaa; cursor: not-allowed; }
+  .btn-transport { min-width: 70px; font-size: 16px; }
+  .btn-mic { background: white; color: black; border-color: #ccc; }
+  .btn-mic.listening { background: #d9534f; color: white; border-color: #d9534f; animation: pulse-bg 1.5s infinite; }
+  @keyframes pulse-bg { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+  .title-section { text-align: right; font-family: "DIN Alternate", "Helvetica Neue Condensed", sans-serif; font-size: 22px; font-weight: bold; line-height: 1.15; }
+  .title-line-1, .title-line-2 { color: #fd882b; }
+  .title-line-3 { color: #1b6884; }
+  .title-line-4 { color: #6ea7b2; }
+  .bottom-section { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
+  .log-container { border: 1px solid #ddd; border-radius: 3px; height: 600px; overflow: hidden; display: flex; flex-direction: column; }
+  .log { background: white; color: #333; font-family: "SF Mono", Menlo, Monaco, "Courier New", monospace; font-size: 11px; padding: 10px; overflow-y: scroll; flex: 1; line-height: 1.5; white-space: pre-wrap; word-wrap: break-word; }
+  .controls { display: flex; flex-direction: column; gap: 16px; }
+  .section { display: flex; flex-direction: column; gap: 6px; }
+  .section-title { font-size: 12px; font-weight: bold; color: #333; letter-spacing: 0.5px; }
+  .section-row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .info-text { font-size: 11px; color: #666; margin-top: 4px; }
+  .voice-grid { display: grid; gap: 4px; }
+  .voice-row { display: grid; grid-template-columns: 110px 1fr; align-items: center; gap: 8px; }
+  .voice-label { font-size: 12px; color: #333; }
+  select, input[type="text"], input[type="number"] { background: white; color: black; border: 1px solid #ccc; padding: 5px 8px; font-size: 12px; font-family: inherit; border-radius: 3px; width: 100%; }
+  .duration-input { width: 110px !important; text-align: center; font-size: 14px; }
+  .btn-small { padding: 5px 12px; font-size: 12px; }
+  .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #ccc; margin-right: 6px; vertical-align: middle; }
+  .status-dot.active { background: #1a6f76; animation: pulse 1.5s infinite; }
+  .status-dot.paused { background: #fd882b; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+  .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
+  .modal-overlay.active { display: flex; }
+  .modal { background: white; padding: 24px; border-radius: 6px; max-width: 500px; width: 90%; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
+  .modal h2 { margin-bottom: 12px; font-size: 18px; color: #1a6f76; }
+  .modal p { margin-bottom: 14px; font-size: 13px; line-height: 1.5; color: #555; }
+  .modal input { margin-bottom: 14px; padding: 8px; }
+  .modal-buttons { display: flex; gap: 8px; justify-content: flex-end; }
+  input[type="file"] { display: none; }
+  .file-btn { display: inline-block; padding: 5px 12px; background: white; color: black; border: 1px solid #ccc; cursor: pointer; font-size: 12px; border-radius: 3px; }
+  .file-btn:hover { background: #f0f0f0; }
+  .log-info { color: #333; }
+  .log-cue { color: #1a6f76; font-weight: bold; }
+  .log-gpt { color: #fd882b; }
+  .log-error { color: #cc0000; }
+  .log-system { color: #888; font-style: italic; }
+  .log-voice { color: #b3199e; font-weight: bold; }
+  .log-music { color: #4287f5; }
+  .log-server { color: #1a6f76; }
+  .slider-row { display: grid; grid-template-columns: 100px 1fr 40px; gap: 8px; align-items: center; font-size: 12px; }
+  input[type="range"] { width: 100%; }
+  .music-row { display: grid; grid-template-columns: 100px 1fr 60px; gap: 6px; align-items: center; font-size: 11px; }
+  .voice-commands-list { background: #f7f7f7; padding: 8px; border-radius: 3px; font-size: 10px; color: #555; line-height: 1.5; }
+  .tabs { display: flex; gap: 0; border-bottom: 1px solid #ddd; margin-bottom: 12px; }
+  .tab { padding: 6px 14px; cursor: pointer; font-size: 12px; border: 1px solid transparent; border-bottom: none; background: #f7f7f7; border-radius: 3px 3px 0 0; }
+  .tab.active { background: white; border-color: #ddd; font-weight: bold; color: #1a6f76; }
+  .tab-content { display: none; }
+  .tab-content.active { display: flex; flex-direction: column; gap: 16px; }
+  .track-list { background: #fafafa; border: 1px solid #eee; border-radius: 3px; padding: 6px; max-height: 80px; overflow-y: auto; font-size: 10px; color: #666; }
+  .track-item { padding: 2px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .source-badge { display: inline-block; font-size: 9px; padding: 1px 5px; border-radius: 3px; background: #1a6f76; color: white; margin-left: 4px; }
+  .source-badge.local { background: #888; }
+  /* ---- Rehearsal tab ---- */
+  #tab-rehearsal { gap: 8px; }
+  .rr-row { border: 1px solid #e8e8e8; border-radius: 3px; padding: 5px 8px; margin-bottom: 3px; background: #fafafa; }
+  .rr-row.rr-off .dual-range { opacity: 0.38; pointer-events: none; }
+  .rr-header { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+  .rr-label { flex: 1; font-size: 12px; cursor: pointer; user-select: none; }
+  .rr-val { font-size: 11px; color: #1a6f76; font-weight: bold; min-width: 56px; text-align: right; white-space: nowrap; }
+  .dual-range { position: relative; height: 40px; }
+  .dr-bg-track { position: absolute; top: 8px; left: 0; right: 0; height: 4px; background: #e0e0e0; border-radius: 2px; }
+  .dr-fill { position: absolute; top: 0; height: 100%; background: #1a6f76; border-radius: 2px; pointer-events: none; }
+  .dr-notch-row { position: absolute; top: 14px; left: 0; right: 0; pointer-events: none; }
+  .dr-notch { position: absolute; width: 1px; height: 3px; background: #ccc; }
+  .dr-notch.major { height: 6px; background: #999; }
+  .dr-label-row { position: absolute; top: 22px; left: 0; right: 0; pointer-events: none; }
+  .dr-tlabel { position: absolute; font-size: 8px; color: #bbb; transform: translateX(-50%); }
+  .dr-input { position: absolute; top: 0; left: 0; width: 100%; height: 20px; background: transparent; outline: none; -webkit-appearance: none; appearance: none; pointer-events: none; margin: 0; padding: 0; }
+  .dr-input::-webkit-slider-runnable-track { background: transparent; height: 4px; }
+  .dr-input::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: #1a6f76; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.3); pointer-events: all; cursor: pointer; margin-top: -6px; }
+  .dr-input:focus::-webkit-slider-thumb { border-color: #fd882b; }
+  .dr-input::-moz-range-track { background: transparent; height: 4px; border: none; }
+  .dr-input::-moz-range-thumb { width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; background: #1a6f76; box-shadow: 0 1px 3px rgba(0,0,0,0.3); pointer-events: all; cursor: pointer; }
+  .section-greyed { opacity: 0.42; pointer-events: none; }
+</style>
+</head>
+<body>
+<div class="container">
+  
+  <div class="top-section">
+    <div class="timer-section">
+      <div class="timer" id="timer">00:00</div>
+      <div class="transport-buttons">
+        <button class="btn btn-transport" id="playBtn" onclick="app.play()">Play</button>
+        <button class="btn btn-transport" id="pauseBtn" onclick="app.pause()" disabled>Pause</button>
+        <button class="btn btn-transport" id="stopBtn" onclick="app.stop()" disabled>Stop</button>
+        <button class="btn btn-mic" id="micBtn" onclick="app.toggleMic()">Mic Off</button>
+      </div>
+      <div class="info-text">
+        <span class="status-dot" id="statusDot"></span>
+        <span id="statusLabel">Ready</span>
+      </div>
+    </div>
+    
+    <div class="title-section">
+      <div class="title-line-1">just trying to do what I'm told and</div>
+      <div class="title-line-2">keep up and do the best that I can</div>
+      <div class="title-line-3">/ James Saunders</div>
+      <div class="title-line-4">/ 2025</div>
+    </div>
+  </div>
+  
+  <div class="bottom-section">
+    <div class="log-container">
+      <div class="log" id="log"></div>
+    </div>
+    
+    <div class="controls">
+      
+      <div class="tabs">
+        <div class="tab active" onclick="app.switchTab(event, 'main')">Main</div>
+        <div class="tab" onclick="app.switchTab(event, 'voices')">Voices</div>
+        <div class="tab" onclick="app.switchTab(event, 'music')">Music</div>
+        <div class="tab" onclick="app.switchTab(event, 'settings')">Settings</div>
+        <div class="tab" onclick="app.switchTab(event, 'rehearsal')">Rehearsal</div>
+      </div>
+      
+      <div class="tab-content active" id="tab-main">
+        <div id="rehearsalScoreNote" style="display:none; font-size:12px; color:#fd882b; font-style:italic; padding: 6px 2px 2px 2px;">Deactivate Rehearsal Mode to use a score.</div>
+        <div class="section" id="scoreSection">
+          <div class="section-title">SCORE</div>
+          <select id="scoreSelect" onchange="app.loadServerScore(this.value)" style="display:none; margin-bottom: 4px;">
+            <option value="">-- Select a score --</option>
+          </select>
+          <div class="section-row">
+            <label class="file-btn" for="scoreFile">Upload Score</label>
+            <input type="file" id="scoreFile" accept=".txt" onchange="app.loadScore(event)">
+            <button class="btn btn-small" onclick="app.clearScore()">Clear</button>
+            <button class="btn btn-small" onclick="app.reloadFromServer()">Reload Server</button>
+          </div>
+          <div class="info-text" id="scoreInfo">No score loaded</div>
+        </div>
+        
+        <div class="section">
+          <div class="section-title">DURATION</div>
+          <input type="text" class="duration-input" id="duration" value="05:00" placeholder="MM:SS">
+        </div>
+        
+        <div class="section">
+          <div class="section-title">VOICE COMMANDS (when mic on)</div>
+          <div class="voice-commands-list">
+            <strong>Control:</strong> "pause", "continue", "stop"<br>
+            <strong>Speed:</strong> "slower", "faster", "normal speed"<br>
+            <strong>Music:</strong> "focus music", "relaxing music", "motivational music", "field recording", "hold music", "stop the music"<br>
+            <strong>End:</strong> "that is all"<br>
+            <em>Other phrases will get an AI response.</em>
+          </div>
+        </div>
+      </div>
+      
+      <div class="tab-content" id="tab-voices">
+        <div class="section">
+          <div class="section-title">VOICE ASSIGNMENTS</div>
+          <div class="voice-grid" id="voiceGrid"></div>
+          <div class="section-row" style="margin-top: 8px;">
+            <button class="btn btn-small" onclick="app.saveConfig()">Save Config</button>
+            <button class="btn btn-small" onclick="app.loadConfig()">Load Config</button>
+            <button class="btn btn-small" onclick="app.showApiKeyModal()">API Key</button>
+          </div>
+        </div>
+        
+        <div class="section">
+          <div class="section-title">AI VOICE</div>
+          <select id="gptVoice"></select>
+        </div>
+      </div>
+      
+      <div class="tab-content" id="tab-music">
+        <div class="section">
+          <div class="section-title">BACKGROUND MUSIC</div>
+          <div class="info-text" style="margin-bottom: 6px;">Tracks load from server automatically. Upload additional tracks below.</div>
+          
+          <div class="music-row">
+            <span>Focus Music</span>
+            <label class="file-btn" for="focusFiles">Add Files</label>
+            <input type="file" id="focusFiles" accept="audio/*" multiple onchange="app.loadMusic('focus', event)">
+            <button class="btn btn-small" onclick="app.clearMusic('focus')">Clear</button>
+          </div>
+          <div class="track-list" id="trackList-focus">No tracks loaded</div>
+          
+          <div class="music-row" style="margin-top: 8px;">
+            <span>Relaxing</span>
+            <label class="file-btn" for="relaxingFiles">Add Files</label>
+            <input type="file" id="relaxingFiles" accept="audio/*" multiple onchange="app.loadMusic('relaxing', event)">
+            <button class="btn btn-small" onclick="app.clearMusic('relaxing')">Clear</button>
+          </div>
+          <div class="track-list" id="trackList-relaxing">No tracks loaded</div>
+          
+          <div class="music-row" style="margin-top: 8px;">
+            <span>Motivational</span>
+            <label class="file-btn" for="motivationalFiles">Add Files</label>
+            <input type="file" id="motivationalFiles" accept="audio/*" multiple onchange="app.loadMusic('motivational', event)">
+            <button class="btn btn-small" onclick="app.clearMusic('motivational')">Clear</button>
+          </div>
+          <div class="track-list" id="trackList-motivational">No tracks loaded</div>
+          
+          <div class="music-row" style="margin-top: 8px;">
+            <span>Field Rec</span>
+            <label class="file-btn" for="fieldFiles">Add Files</label>
+            <input type="file" id="fieldFiles" accept="audio/*" multiple onchange="app.loadMusic('field', event)">
+            <button class="btn btn-small" onclick="app.clearMusic('field')">Clear</button>
+          </div>
+          <div class="track-list" id="trackList-field">No tracks loaded</div>
+          
+          <div class="music-row" style="margin-top: 8px;">
+            <span>Hold Music</span>
+            <label class="file-btn" for="holdFiles">Add Files</label>
+            <input type="file" id="holdFiles" accept="audio/*" multiple onchange="app.loadMusic('hold', event)">
+            <button class="btn btn-small" onclick="app.clearMusic('hold')">Clear</button>
+          </div>
+          <div class="track-list" id="trackList-hold">No tracks loaded (plays when paused)</div>
+        </div>
+        
+        <div class="section">
+          <div class="section-title">QUICK CONTROLS</div>
+          <div class="section-row">
+            <button class="btn btn-small" onclick="app.playMusic('focus')">Play Focus</button>
+            <button class="btn btn-small" onclick="app.playMusic('relaxing')">Play Relax</button>
+            <button class="btn btn-small" onclick="app.playMusic('motivational')">Play Motiv.</button>
+            <button class="btn btn-small" onclick="app.playMusic('field')">Play Field</button>
+            <button class="btn btn-small" onclick="app.stopAllMusic()">Stop Music</button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="tab-content" id="tab-settings">
+        <div style="background: #e8f4f8; border: 1px solid #1a6f76; padding: 6px 10px; border-radius: 4px; font-size: 11px; color: #1a6f76;">
+          Build v26 — browser TTS warm-up fix
+        </div>
+        <div class="section">
+          <div class="section-title">AUDIO DEVICES</div>
+          <div class="info-text" style="margin-bottom:6px;">Device labels appear after mic permission is granted. <a href="#" onclick="app.populateAudioDevices(); return false;" style="color:#1a6f76;">Refresh</a></div>
+          <div class="section-row" style="align-items:center; gap:8px; margin-bottom:6px; font-size:12px;">
+            <span style="width:80px; flex-shrink:0;">Input (Mic)</span>
+            <select id="inputDeviceSelect" onchange="app.setInputDevice(this.value)" style="flex:1; font-size:12px;">
+              <option value="">Default</option>
+            </select>
+          </div>
+          <div class="section-row" style="align-items:center; gap:8px; margin-bottom:6px; font-size:12px;">
+            <span style="width:80px; flex-shrink:0;">Output</span>
+            <select id="outputDeviceSelect" onchange="app.setOutputDevice(this.value)" style="flex:1; font-size:12px;">
+              <option value="">Default</option>
+            </select>
+          </div>
+          <div id="outputDeviceNote" class="info-text" style="display:none; color:#a33;">Output device selection not supported in this browser (Chrome/Edge only).</div>
+          <div class="info-text">Output device applies to OpenAI TTS and music only. Browser voices always use the system default output.</div>
+          <div class="slider-row">
+            <span>Mic Level</span>
+            <input type="range" id="micGainSlider" min="0.1" max="3.0" step="0.1" value="1.0" oninput="app.setMicGain(this.value)">
+            <span id="micGainValue">1.0</span>
+          </div>
+          <div class="info-text">Mic Level boosts or attenuates the microphone signal — adjust if Whisper is missing quiet speech or triggering on room noise.</div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">VOLUME SETTINGS</div>
+          <div class="slider-row">
+            <span>AI Voice</span>
+            <input type="range" id="aiVolSlider" min="0" max="2.0" step="0.05" value="1.0" oninput="document.getElementById('aiVolValue').textContent = this.value">
+            <span id="aiVolValue">1.0</span>
+          </div>
+          <div class="slider-row">
+            <span>Category Voices</span>
+            <input type="range" id="volumeSlider" min="0" max="2.0" step="0.05" value="1.0" oninput="document.getElementById('volumeValue').textContent = this.value">
+            <span id="volumeValue">1.0</span>
+          </div>
+          <div class="slider-row">
+            <span>Music</span>
+            <input type="range" id="musicVolSlider" min="0" max="2.0" step="0.05" value="0.3" oninput="app.updateMusicVolume(this.value)">
+            <span id="musicVolValue">0.3</span>
+          </div>
+          <div class="info-text">Volume can go above 1.0 for louder OpenAI TTS voices.</div>
+        </div>
+        
+        <div class="section">
+          <div class="section-title">AI VOICE</div>
+          <div style="display:flex; gap:16px; font-size:12px; align-items:center; margin-bottom:6px;">
+            <label style="display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="radio" name="aiVoiceType" id="aiVoiceBrowser" value="browser" style="width:auto;" onchange="app.setAIVoiceType('browser')" checked> Browser</label>
+            <label style="display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="radio" name="aiVoiceType" id="aiVoiceOpenAI" value="openai" style="width:auto;" onchange="app.setAIVoiceType('openai')"> OpenAI TTS</label>
+          </div>
+          <div id="aiReverbSection" style="display:none;">
+            <div class="slider-row">
+              <span>Reverb</span>
+              <input type="range" id="reverbSlider" min="0" max="1" step="0.05" value="0.3" oninput="document.getElementById('reverbValue').textContent = this.value">
+              <span id="reverbValue">0.3</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">CATEGORY VOICES</div>
+          <div style="display:flex; gap:16px; font-size:12px; align-items:center; margin-bottom:6px;">
+            <label style="display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="radio" name="categoryVoiceType" id="categoryVoiceBrowser" value="browser" style="width:auto;" onchange="app.setCategoryVoiceType('browser')" checked> Browser</label>
+            <label style="display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="radio" name="categoryVoiceType" id="categoryVoiceOpenAI" value="openai" style="width:auto;" onchange="app.setCategoryVoiceType('openai')"> OpenAI TTS</label>
+          </div>
+          <div class="info-text" style="margin-bottom:4px;">OpenAI TTS enables reverb, panning, and caching. Cost: ~$0.02–0.04 per session.</div>
+          <div id="categoryReverbSection" style="display:none;">
+            <div class="slider-row">
+              <span>Reverb</span>
+              <input type="range" id="categoryReverbSlider" min="0" max="1" step="0.05" value="0.2" oninput="document.getElementById('categoryReverbValue').textContent = this.value">
+              <span id="categoryReverbValue">0.2</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="section" id="panningSection" style="display: none;">
+          <div class="section-title">VOICE PANNING</div>
+          <div class="info-text" style="margin-bottom: 6px;">
+            AI voice always centred. Drag sliders to pan category voices left/right.
+          </div>
+          <div id="panningGrid"></div>
+        </div>
+        
+        <div class="section">
+          <div class="section-title">VOICE LEVEL CALIBRATION</div>
+          <div class="info-text" style="margin-bottom: 8px;">
+            Calibrates the mic so only your voice (not speaker bleed) triggers AI response. The mic auto-enables. AI guides you: (1) stay silent while sample voices play, (2) speak normally when you hear "Go".<br><br>
+            <strong>Important — use OpenAI TTS for everything:</strong><br>
+            Browser TTS (Mac voices) bypasses the browser's echo cancellation, so it bleeds into the mic ~25× more than OpenAI TTS. For clean voice recognition, enable BOTH "OpenAI TTS for AI voice" AND "OpenAI TTS for category voices" in the Voices tab.<br><br>
+            <strong>Tips:</strong><br>
+            • Set all volume sliders to session values BEFORE calibrating<br>
+            • Lower Mac mic input gain (System Settings → Sound → Input) — surprisingly often works better<br>
+            • Use a directional cardioid vocal mic if possible
+          </div>
+          <div style="display: flex; gap: 8px; margin-bottom: 6px;">
+            <button class="btn" onclick="app.calibrateVoice()" id="calibBtn">Calibrate Voice Level</button>
+            <button class="btn" onclick="app.clearVoiceCalibration()">Clear</button>
+          </div>
+          <div class="info-text" id="calibStatus">Not calibrated</div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="tab-rehearsal">
+        <div class="section">
+          <div class="section-row" style="align-items:center;gap:10px;">
+            <input type="checkbox" id="rehearsalModeToggle" onchange="app.toggleRehearsalMode(this.checked)" style="width:auto;">
+            <span style="font-size:13px;font-weight:bold;">Rehearsal Mode</span>
+          </div>
+          <div class="info-text" style="margin-top:4px;">When on, Play fires free cue practice — no score needed.</div>
+        </div>
+
+        <div id="rehearsalControls" style="display:none;">
+          <div class="section">
+            <div class="section-title">AI VOICE</div>
+            <div class="section-row" style="align-items:center;gap:8px;">
+              <input type="checkbox" id="rehearsalAIVoiceToggle" checked onchange="app.updateRehearsalAIVoice(this.checked)" style="width:auto;">
+              <label for="rehearsalAIVoiceToggle" style="font-size:12px;cursor:pointer;">AI voice active during rehearsal</label>
+            </div>
+          </div>
+          <div class="section">
+            <div class="section-title">CATEGORIES — cue interval (seconds)</div>
+            <div id="rehearsalCategoryList"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="apiKeyModal">
+  <div class="modal">
+    <h2>OpenAI API Key</h2>
+    <p>Enter your OpenAI API key. Get one at <strong>platform.openai.com/api-keys</strong>. The key is stored in your browser only.</p>
+    <input type="password" id="apiKeyInput" placeholder="sk-..." style="width: 100%; padding: 8px;">
+    <div class="modal-buttons">
+      <button class="btn" onclick="app.closeApiKeyModal()">Cancel</button>
+      <button class="btn" onclick="app.saveApiKey()" style="background: #1a6f76; color: white; border-color: #1a6f76;">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const VOICE_CATEGORIES = [
+  { key: 'pitch', label: 'Pitch' },
+  { key: 'chord_major', label: 'Major Chord' },
+  { key: 'chord_minor', label: 'Minor Chord' },
+  { key: 'pitch_sequence', label: 'Pitch Sequence' },
+  { key: 'extract', label: 'Extract' },
+  { key: 'sound', label: 'Sound' },
+  { key: 'object', label: 'Object' },
+  { key: 'action', label: 'Action' }
+];
+
+// Pitch sequence generator: C4-C5 major scale, generates 4-8 note random sequences
+const PITCH_SEQUENCE_NOTES = ['C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4', 'C5'];
+const PITCH_SEQUENCE_FREQS = {
+  'C4': 261.63, 'D4': 293.66, 'E4': 329.63, 'F4': 349.23,
+  'G4': 392.00, 'A4': 440.00, 'B4': 493.88, 'C5': 523.25
+};
+
+// Default panning per category (L = negative, C = 0, R = positive)
+const DEFAULT_PANNING = {
+  pitch: 0,           // Centre
+  chord_major: -0.9,  // L90
+  chord_minor: 0.9,   // R90
+  pitch_sequence: 0,  // Centre
+  extract: -0.4,      // L40
+  sound: -0.7,        // L70
+  object: 0.7,        // R70
+  action: 0.4         // R40
+};
+
+// Spoken introductions for pitch sequences (one chosen at random each time)
+const PITCH_SEQUENCE_INTROS = [
+  "Listen and play this back",
+  "Copy this short sequence",
+  "Try to match these notes",
+  "Echo this melody",
+  "Listen carefully, then repeat",
+  "Play these notes after me",
+  "Here is a sequence to copy",
+  "Listen and try to follow",
+  "Repeat this short phrase",
+  "Copy what you hear",
+  "Try this sequence and play it back",
+  "Match this pattern of notes",
+  "Listen, then play it back to me",
+  "Echo these pitches",
+  "Try to copy what comes next"
+];
+
+const BUILT_IN_CATEGORIES = {
+  pitch: ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'C sharp', 'D sharp', 'F sharp', 'G sharp', 'A sharp'],
+  chord_major: ['C major', 'D major', 'E major', 'F major', 'G major', 'A major', 'B major'],
+  chord_minor: ['C minor', 'D minor', 'E minor', 'F minor', 'G minor', 'A minor', 'B minor'],
+  extract: ['louder', 'softer', 'faster', 'slower', 'higher', 'lower', 'tense', 'relaxed', 'sustained', 'staccato'],
+  sound: ['hum', 'whistle', 'click', 'scratch', 'tap', 'breathe', 'whisper', 'shout', 'sing', 'speak'],
+  object: ['piano', 'string', 'metal', 'wood', 'glass', 'paper', 'cloth', 'water', 'stone', 'air'],
+  action: ['press', 'pull', 'push', 'strike', 'rub', 'pluck', 'bow', 'blow', 'shake', 'twist'],
+  pitch_sequence: ['C E G', 'D F A', 'E G B', 'F A C', 'G B D', 'A C E', 'B D F']
+};
+
+class JustTryingApp {
+  constructor() {
+    this.state = {
+      running: false, paused: false,
+      sessionStartTime: null, pausedTime: 0, pauseStart: null,
+      elapsedSeconds: 0, totalDuration: 300,
+      cueIntervals: {}, scoreEvents: [], globalGPT: [],
+      activeCategories: new Map(),
+      voiceAssignments: {}, gptVoice: '',
+      apiKey: '', timerInterval: null,
+      voices: [], categoriesData: {},
+      gptInProgress: false, lastGPTTime: 0, gptInterval: 40000,
+      musicTracks: { focus: [], relaxing: [], motivational: [], field: [], hold: [] },
+      currentMusic: null, currentMusicCategory: null, currentHoldMusic: null,
+      musicVolume: 0.3, holdMusicVolume: 0.6,
+      micEnabled: false, recognition: null, voiceCommandLock: false,
+      voiceRate: 1.0, voicePitch: 1.0, voiceVolume: 1.0, timingMultiplier: 1.0,
+      conversationHistory: [],
+      manifest: null,
+      gptTexts: {},  // filename -> array of phrases
+      voicePanning: {},  // category -> pan value (-1 to 1)
+      useTTS: false,
+      useCategoryTTS: false,
+      lastBrowserTTSEnd: 0,
+      lastCategoryTTSEnd: 0,
+      ttsCache: new Map(),
+      ttsAudioContext: null,
+      ttsImpulseResponse: null,
+      uploadedScores: {},  // filename -> raw text content
+      aiSpeechQueue: [],
+      aiSpeechProcessing: false,
+      pitchSequencePlaying: false,
+      pitchAudioContext: null,
+      rehearsalMode: false,
+      rehearsalAIVoice: true,
+      rehearsalCategories: Object.fromEntries(VOICE_CATEGORIES.map(c => [c.key, { enabled: false, min: 3, max: 7 }])),
+      inputDeviceId: '',
+      outputDeviceId: '',
+      micGain: 1.0,
+      micGainNode: null
+    };
+    this.init();
+  }
+  
+  async init() {
+    this.loadFromStorage();
+    this.loadRehearsalSettings();
+
+    // Apply default panning for any categories not already set in storage
+    Object.keys(DEFAULT_PANNING).forEach(cat => {
+      if (this.state.voicePanning[cat] === undefined) {
+        this.state.voicePanning[cat] = DEFAULT_PANNING[cat];
+      }
+    });
+    
+    this.setupVoices();
+    this.setupVoiceGrid();
+    this.setupRecognition();
+    
+    // Update calibration status display
+    this.updateCalibrationStatus();
+    
+    this.log('JustTrying initialized.', 'system');
+    
+    // Always start with built-in categories (will be overridden by server if available)
+    this.state.categoriesData = { ...BUILT_IN_CATEGORIES };
+    
+    // Try to load server-side content (may override categories with server versions)
+    await this.loadServerContent();
+    
+    this.log(`Categories ready: ${Object.keys(this.state.categoriesData).join(', ')}`, 'info');
+    this.log('Setup: 1) Set API key  2) Choose score  3) Press Play', 'system');
+    this.log('Click the mic button to enable voice commands.', 'system');
+    
+    if (!this.state.apiKey) this.showApiKeyModal();
+    else this.log('API key loaded.', 'info');
+
+    // Restore mic gain slider
+    const micGainSlider = document.getElementById('micGainSlider');
+    if (micGainSlider) {
+      micGainSlider.value = this.state.micGain;
+      document.getElementById('micGainValue').textContent = this.state.micGain.toFixed(1);
+    }
+    this.populateAudioDevices();
+
+    this.buildRehearsalCategoryList();
+    // Restore rehearsal mode UI state if it was saved on
+    if (this.state.rehearsalMode) {
+      document.getElementById('rehearsalModeToggle').checked = true;
+      document.getElementById('rehearsalControls').style.display = 'block';
+      const scoreSection = document.getElementById('scoreSection');
+      if (scoreSection) scoreSection.classList.add('section-greyed');
+      const note = document.getElementById('rehearsalScoreNote');
+      if (note) note.style.display = 'block';
+    }
+    if (!this.state.rehearsalAIVoice) {
+      const el = document.getElementById('rehearsalAIVoiceToggle');
+      if (el) el.checked = false;
+    }
+  }
+  
+  // ============== SERVER-SIDE CONTENT LOADING ==============
+  
+  async loadServerContent() {
+    this.log('Checking for server-side content...', 'server');
+    
+    try {
+      const response = await fetch('manifest.json', { cache: 'no-cache' });
+      if (!response.ok) {
+        this.log('No manifest.json found. Using upload buttons.', 'info');
+        return;
+      }
+      try {
+        this.state.manifest = await response.json();
+      } catch (parseErr) {
+        this.log(`ERROR: manifest.json has invalid JSON syntax: ${parseErr.message}`, 'error');
+        this.log('Tip: Make sure all filenames are in "double quotes" and separated by commas.', 'error');
+        return;
+      }
+      this.log('Found manifest.json - loading content from server.', 'server');
+    } catch (e) {
+      this.log('No manifest.json found. Using upload buttons.', 'info');
+      return;
+    }
+    
+    const manifest = this.state.manifest;
+    
+    // Load categories
+    if (manifest.categories && manifest.categories.length > 0) {
+      let loaded = 0;
+      for (const cat of manifest.categories) {
+        try {
+          const resp = await fetch(`categories/${cat}.csv`, { cache: 'no-cache' });
+          if (resp.ok) {
+            const content = await resp.text();
+            let items = this.parseCSV(content);
+            const beforeLen = items.length;
+            if (cat === 'extract') {
+              items = this.repairExtractItems(items);
+            } else if (cat === 'chord_major') {
+              items = this.repairChordItems(items, 'major');
+            } else if (cat === 'chord_minor') {
+              items = this.repairChordItems(items, 'minor');
+            }
+            if (items.length !== beforeLen) {
+              this.log(`Repaired ${cat} CSV: ${beforeLen} → ${items.length} items`, 'info');
+            }
+            // Log first few items so you can see what got loaded
+            const sample = items.slice(0, 5).join(' | ');
+            this.log(`[CSV ${cat}] ${items.length} items: ${sample}${items.length > 5 ? ' | ...' : ''}`, 'info');
+            this.state.categoriesData[cat] = items;
+            loaded++;
+          }
+        } catch (e) {
+          this.log(`Failed to load category: ${cat}`, 'error');
+        }
+      }
+      if (loaded > 0) {
+        this.updateCategoriesInfo();
+        this.log(`Loaded ${loaded} categories from server.`, 'server');
+      }
+    }
+    
+    // Populate scores dropdown
+    if (manifest.scores && manifest.scores.length > 0) {
+      const select = document.getElementById('scoreSelect');
+      select.innerHTML = '<option value="">-- Select a score --</option>';
+      for (const score of manifest.scores) {
+        const opt = document.createElement('option');
+        if (typeof score === 'string') {
+          opt.value = score;
+          opt.textContent = score;
+        } else {
+          // Object with file and name
+          opt.value = score.file;
+          opt.textContent = score.name || score.file;
+        }
+        select.appendChild(opt);
+      }
+      select.style.display = 'block';
+      this.log(`${manifest.scores.length} scores available on server.`, 'server');
+      
+      // Auto-load first score if only one
+      if (manifest.scores.length === 1) {
+        const first = manifest.scores[0];
+        const filename = typeof first === 'string' ? first : first.file;
+        await this.loadServerScore(filename);
+        select.value = filename;
+      }
+    }
+    
+    // Register music tracks from server
+    if (manifest.music) {
+      for (const [category, files] of Object.entries(manifest.music)) {
+        if (!this.state.musicTracks[category]) continue;
+        for (const file of files) {
+          this.state.musicTracks[category].push({
+            name: file,
+            url: `music/${category}/${encodeURIComponent(file)}`,
+            source: 'server'
+          });
+        }
+        this.updateTrackList(category);
+      }
+      const totalTracks = Object.values(manifest.music).reduce((sum, arr) => sum + arr.length, 0);
+      if (totalTracks > 0) {
+        this.log(`${totalTracks} music tracks registered from server.`, 'server');
+      }
+    }
+    
+    // Load gpt_texts files
+    if (manifest.gpt_texts && manifest.gpt_texts.length > 0) {
+      let loaded = 0;
+      for (const filename of manifest.gpt_texts) {
+        try {
+          const resp = await fetch(`gpt_texts/${filename}`, { cache: 'no-cache' });
+          if (resp.ok) {
+            const content = await resp.text();
+            this.state.gptTexts[filename] = this.parseCSV(content);
+            loaded++;
+          }
+        } catch (e) {
+          this.log(`Failed to load gpt_text: ${filename}`, 'error');
+        }
+      }
+      if (loaded > 0) {
+        this.log(`Loaded ${loaded} GPT text files from server.`, 'server');
+      }
+    }
+    
+    // Apply default settings from manifest
+    if (manifest.defaults) {
+      const d = manifest.defaults;
+      if (d.duration) document.getElementById('duration').value = d.duration;
+      if (d.voiceRate) { this.updateRate(d.voiceRate); }
+      if (d.musicVolume) {
+        document.getElementById('musicVolSlider').value = d.musicVolume;
+        document.getElementById('musicVolValue').textContent = d.musicVolume;
+        this.state.musicVolume = parseFloat(d.musicVolume);
+      }
+    }
+  }
+  
+  async loadServerScore(filename) {
+    if (!filename) return;
+    
+    // Handle uploaded scores (cached in memory)
+    if (filename.startsWith('__uploaded__')) {
+      const actualName = filename.substring('__uploaded__'.length);
+      const content = this.state.uploadedScores[actualName];
+      if (content) {
+        this.parseScore(content);
+        document.getElementById('scoreInfo').textContent = `${actualName} (uploaded)`;
+        this.log(`Loaded uploaded score: ${actualName}`, 'info');
+      } else {
+        this.log(`Uploaded score not found: ${actualName}`, 'error');
+      }
+      return;
+    }
+    
+    try {
+      const resp = await fetch(`scores/${filename}`, { cache: 'no-cache' });
+      if (!resp.ok) {
+        this.log(`Failed to load score: ${filename}`, 'error');
+        return;
+      }
+      const content = await resp.text();
+      this.parseScore(content);
+      document.getElementById('scoreInfo').textContent = `${filename} (from server)`;
+      this.log(`Score loaded from server: ${filename}`, 'server');
+    } catch (e) {
+      this.log(`Error loading score: ${e.message}`, 'error');
+    }
+  }
+  
+  async reloadFromServer() {
+    // Reset categories to built-in defaults, then re-load from server
+    this.state.categoriesData = { ...BUILT_IN_CATEGORIES };
+    Object.keys(this.state.musicTracks).forEach(k => {
+      this.state.musicTracks[k].forEach(t => {
+        if (t.source !== 'server') URL.revokeObjectURL(t.url);
+      });
+      this.state.musicTracks[k] = [];
+      this.updateTrackList(k);
+    });
+    this.updateCategoriesInfo();
+    
+    await this.loadServerContent();
+    this.log(`Categories ready: ${Object.keys(this.state.categoriesData).join(', ')}`, 'info');
+  }
+  
+  // ============== Rest of the app ==============
+  
+  switchTab(ev, name) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    ev.target.classList.add('active');
+    document.getElementById('tab-' + name).classList.add('active');
+  }
+  
+  setupVoices() {
+    const loadVoices = () => {
+      this.state.voices = speechSynthesis.getVoices();
+      if (this.state.voices.length > 0) this.populateVoiceDropdowns();
+    };
+    loadVoices();
+    if (speechSynthesis.onvoiceschanged !== undefined) {
+      speechSynthesis.onvoiceschanged = loadVoices;
+    }
+  }
+  
+  setupVoiceGrid() {
+    const grid = document.getElementById('voiceGrid');
+    grid.innerHTML = '';
+    VOICE_CATEGORIES.forEach(cat => {
+      const row = document.createElement('div');
+      row.className = 'voice-row';
+      row.innerHTML = `<span class="voice-label">${cat.label}</span><select id="voice-${cat.key}" onchange="app.updateVoiceAssignment('${cat.key}', this.value)"><option>Loading voices...</option></select>`;
+      grid.appendChild(row);
+    });
+  }
+  
+  populateVoiceDropdowns() {
+    const TTS_VOICES = ['alloy', 'ash', 'coral', 'echo', 'fable', 'nova', 'onyx', 'sage', 'shimmer'];
+    const englishVoices = this.state.voices.filter(v => v.lang.startsWith('en')).sort((a, b) => a.name.localeCompare(b.name));
+    const browserVoiceList = englishVoices.length > 0 ? englishVoices : this.state.voices;
+    
+    // Category voices: browser or TTS depending on toggle
+    const useCategoryTTS = this.state.useCategoryTTS;
+    const categoryVoiceList = useCategoryTTS 
+      ? TTS_VOICES.map(name => ({ name, lang: 'OpenAI' })) 
+      : browserVoiceList;
+    
+    VOICE_CATEGORIES.forEach(cat => {
+      const select = document.getElementById(`voice-${cat.key}`);
+      if (!select) return;
+      select.innerHTML = '';
+      categoryVoiceList.forEach(voice => {
+        const opt = document.createElement('option');
+        opt.value = voice.name;
+        opt.textContent = useCategoryTTS ? voice.name : `${voice.name} (${voice.lang})`;
+        select.appendChild(opt);
+      });
+      
+      if (useCategoryTTS) {
+        // Default TTS voices per category (each unique)
+        const ttsDefaults = {
+          pitch: 'fable',           // British male (like Jamie)
+          chord_major: 'nova',      // Warm female (like Karen)
+          chord_minor: 'shimmer',   // Soft female (like Fiona)
+          pitch_sequence: 'alloy',  // Neutral
+          extract: 'ash',           // Male
+          sound: 'sage',            // Calm
+          object: 'coral',          // Warm female
+          action: 'echo'            // Male
+        };
+        const saved = this.state.voiceAssignments[cat.key];
+        if (this.isValidTTSVoice(saved)) {
+          select.value = saved;
+        } else {
+          select.value = ttsDefaults[cat.key] || 'alloy';
+          this.state.voiceAssignments[cat.key] = select.value;
+        }
+      } else {
+        const saved = this.state.voiceAssignments[cat.key];
+        if (saved && browserVoiceList.find(v => v.name === saved)) {
+          select.value = saved;
+        } else {
+          // Defaults: [name, preferred lang] - exact name+lang match preferred, name-only fallback
+          const defaults = {
+            pitch: [['Lee', 'en-AU'], ['Oliver', 'en-GB'], ['Alex', 'en-US']],
+            chord_major: [['Karen', 'en-AU'], ['Samantha', 'en-US'], ['Rishi', 'en-IN']],
+            chord_minor: [['Fiona', 'en-GB'], ['Moira', 'en-IE'], ['Tessa', 'en-ZA']],
+            object: [['Allison', 'en-US'], ['Ava', 'en-US'], ['Samantha', 'en-US']],
+            sound: [['Tessa', 'en-ZA'], ['Veena', 'en-IN'], ['Karen', 'en-AU']],
+            action: [['Samantha', 'en-US'], ['Alex', 'en-US'], ['Oliver', 'en-GB']],
+            extract: [['Oliver', 'en-GB'], ['Tom', 'en-US'], ['Lee', 'en-AU']],
+            pitch_sequence: [['Evan', 'en-US'], ['Fred', 'en-US'], ['Alex', 'en-US']]
+          };
+          const preferred = defaults[cat.key] || [];
+          for (const [name, lang] of preferred) {
+            // First try exact name + locale prefix match (e.g. "Lee" with "en-AU")
+            let match = browserVoiceList.find(v => v.name === name && v.lang.startsWith(lang));
+            // Then try name-only match (any locale)
+            if (!match) match = browserVoiceList.find(v => v.name === name);
+            // Last resort: name substring match
+            if (!match) match = browserVoiceList.find(v => v.name.includes(name));
+            if (match) { select.value = match.name; this.state.voiceAssignments[cat.key] = match.name; break; }
+          }
+          if (!this.state.voiceAssignments[cat.key] && browserVoiceList.length > 0) {
+            select.value = browserVoiceList[0].name;
+            this.state.voiceAssignments[cat.key] = browserVoiceList[0].name;
+          }
+        }
+      }
+    });
+    
+    // AI voice
+    const useTTS = this.state.useTTS;
+    const aiVoiceList = useTTS 
+      ? TTS_VOICES.map(name => ({ name, lang: 'OpenAI' })) 
+      : browserVoiceList;
+    
+    const gptSel = document.getElementById('gptVoice');
+    gptSel.innerHTML = '';
+    aiVoiceList.forEach(voice => {
+      const opt = document.createElement('option');
+      opt.value = voice.name;
+      opt.textContent = useTTS ? voice.name : `${voice.name} (${voice.lang})`;
+      gptSel.appendChild(opt);
+    });
+    
+    if (useTTS) {
+      gptSel.value = TTS_VOICES.includes(this.state.gptVoice) ? this.state.gptVoice : 'onyx';
+      this.state.gptVoice = gptSel.value;
+    } else {
+      if (this.state.gptVoice && browserVoiceList.find(v => v.name === this.state.gptVoice)) {
+        gptSel.value = this.state.gptVoice;
+      } else {
+        const preferred = ['Daniel', 'Alex', 'Samantha'];
+        for (const name of preferred) {
+          const match = browserVoiceList.find(v => v.name.includes(name));
+          if (match) { gptSel.value = match.name; this.state.gptVoice = match.name; break; }
+        }
+      }
+    }
+    gptSel.onchange = (e) => { this.state.gptVoice = e.target.value; this.saveToStorage(); };
+  }
+  
+  isValidTTSVoice(name) {
+    return ['alloy', 'ash', 'coral', 'echo', 'fable', 'nova', 'onyx', 'sage', 'shimmer'].includes(name);
+  }
+  
+  updateVoiceAssignment(key, voiceName) {
+    this.state.voiceAssignments[key] = voiceName;
+    this.saveToStorage();
+  }
+  
+  setupRecognition() {
+    // Using OpenAI Whisper instead of Web Speech API for reliability
+    this.state.mediaRecorder = null;
+    this.state.audioStream = null;
+    this.state.audioContext = null;
+    this.state.vadActive = false;
+    this.state.recordingChunks = [];
+  }
+  
+  async toggleMic() {
+    if (this.state.micEnabled) {
+      // Stop listening
+      this.state.micEnabled = false;
+      this.state.vadActive = false;
+      
+      if (this.state.mediaRecorder && this.state.mediaRecorder.state === 'recording') {
+        try { this.state.mediaRecorder.stop(); } catch (e) {}
+      }
+      if (this.state.audioStream) {
+        this.state.audioStream.getTracks().forEach(track => track.stop());
+        this.state.audioStream = null;
+      }
+      if (this.state.audioContext) {
+        try { this.state.audioContext.close(); } catch (e) {}
+        this.state.audioContext = null;
+      }
+      
+      const btn = document.getElementById('micBtn');
+      btn.textContent = 'Mic Off';
+      btn.classList.remove('listening');
+      this.log('Voice recognition disabled.', 'system');
+      return;
+    }
+    
+    // Start listening
+    if (!this.state.apiKey) {
+      this.log('Voice recognition requires an OpenAI API key.', 'error');
+      alert('Please set your OpenAI API key first.');
+      return;
+    }
+    
+    try {
+      // Disable autoGainControl - it dynamically changes mic levels and breaks calibration.
+      // echoCancellation helps reduce speaker bleed; noiseSuppression helps reject ambient noise.
+      const audioConstraints = {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: false  // CRITICAL: AGC ruins level-based calibration
+      };
+      if (this.state.inputDeviceId) audioConstraints.deviceId = { exact: this.state.inputDeviceId };
+      this.state.audioStream = await navigator.mediaDevices.getUserMedia({ audio: audioConstraints });
+      this.state.micEnabled = true;
+
+      const btn = document.getElementById('micBtn');
+      btn.textContent = 'Listening...';
+      btn.classList.add('listening');
+      this.log('Voice recognition enabled (Whisper).', 'system');
+      // Re-enumerate after a short delay so enumerateDevices() doesn't race with
+      // the speechSynthesis warm-up that play() fires in the same gesture context.
+      setTimeout(() => this.populateAudioDevices(), 800);
+      
+      this.startVoiceActivityDetection();
+    } catch (e) {
+      this.log(`Failed to access microphone: ${e.message}`, 'error');
+      if (e.name === 'NotAllowedError') {
+        alert('Microphone permission denied. Please allow microphone access in your browser settings.');
+      }
+    }
+  }
+  
+  startVoiceActivityDetection() {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    this.state.audioContext = new AudioCtx();
+    const source = this.state.audioContext.createMediaStreamSource(this.state.audioStream);
+
+    // Mic gain node — adjusts signal level seen by the VAD analyser.
+    // MediaRecorder uses the raw getUserMedia stream directly (more reliable).
+    const gainNode = this.state.audioContext.createGain();
+    gainNode.gain.value = this.state.micGain || 1.0;
+    source.connect(gainNode);
+    this.state.micGainNode = gainNode;
+
+    const analyser = this.state.audioContext.createAnalyser();
+    analyser.fftSize = 2048;
+    analyser.smoothingTimeConstant = 0.5;
+    gainNode.connect(analyser);
+
+    // Store analyser so calibration & other features can use it
+    this.state.vadAnalyser = analyser;
+    
+    const dataArray = new Uint8Array(analyser.frequencyBinCount);
+    
+    let recording = false;
+    let silenceStart = null;
+    let recordingStart = null;
+    let chunks = [];
+    let mediaRecorder = null;
+    
+    const DEFAULT_THRESHOLD = 28;
+    const SILENCE_DURATION = 500;
+    const MIN_RECORDING = 400;
+    const MAX_RECORDING = 15000;
+    
+    this.state.vadActive = true;
+    
+    const tick = () => {
+      if (!this.state.vadActive || !this.state.micEnabled) return;
+      
+      // Suspend recording/transcription during calibration so the AI doesn't
+      // respond to its own calibration prompts. The mic and analyser stay live
+      // so the calibration code can read levels directly.
+      if (this.state.calibrating) {
+        // Abort any in-flight recording started just before calibration began
+        if (recording && mediaRecorder && mediaRecorder.state === 'recording') {
+          try {
+            mediaRecorder.onstop = null;
+            mediaRecorder.stop();
+          } catch (e) {}
+          recording = false;
+          chunks = [];
+          silenceStart = null;
+        }
+        requestAnimationFrame(tick);
+        return;
+      }
+      
+      // Use calibrated threshold if set, otherwise default
+      const VOICE_THRESHOLD = this.state.calibratedThreshold !== undefined
+        ? this.state.calibratedThreshold
+        : DEFAULT_THRESHOLD;
+      
+      // Check if music is playing (to be stricter about voice detection)
+      const musicPlaying = (this.state.currentMusic && !this.state.currentMusic.paused) ||
+                           (this.state.currentHoldMusic && !this.state.currentHoldMusic.paused);
+      
+      analyser.getByteFrequencyData(dataArray);
+      
+      // Calculate average volume in speech frequency range (300-3000 Hz)
+      const sampleRate = this.state.audioContext.sampleRate;
+      const binSize = sampleRate / analyser.fftSize;
+      const startBin = Math.floor(300 / binSize);
+      const endBin = Math.floor(3000 / binSize);
+      
+      let sum = 0;
+      let count = 0;
+      for (let i = startBin; i < endBin && i < dataArray.length; i++) {
+        sum += dataArray[i];
+        count++;
+      }
+      const avgVolume = count > 0 ? sum / count : 0;
+      
+      // Raise threshold when browser TTS is speaking — it bleeds ~25x more than OpenAI TTS
+      // and bypasses echo cancellation, so without this the VAD records continuous bleed.
+      const browserTTSSpeaking = speechSynthesis.speaking || speechSynthesis.pending;
+      const effectiveThreshold = VOICE_THRESHOLD *
+        (musicPlaying ? 1.5 : 1.0) *
+        (browserTTSSpeaking ? 4.0 : 1.0);
+      
+      const now = Date.now();
+      
+      if (avgVolume > effectiveThreshold) {
+        silenceStart = null;
+        
+        if (!recording) {
+          recording = true;
+          recordingStart = now;
+          chunks = [];
+          
+          try {
+            const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' :
+                            MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : 'audio/ogg';
+            mediaRecorder = new MediaRecorder(this.state.audioStream, { mimeType });
+            
+            mediaRecorder.ondataavailable = (e) => {
+              if (e.data.size > 0) chunks.push(e.data);
+            };
+            
+            mediaRecorder.onstop = async () => {
+              const duration = Date.now() - recordingStart;
+              if (duration < MIN_RECORDING) {
+                recording = false;
+                return;
+              }
+              
+              const blob = new Blob(chunks, { type: mediaRecorder.mimeType });
+              if (blob.size > 1500) {
+                await this.transcribeWithWhisper(blob);
+              }
+              recording = false;
+            };
+            
+            mediaRecorder.start();
+          } catch (err) {
+            this.log(`Recording error: ${err.message}`, 'error');
+            recording = false;
+          }
+        }
+        
+        if (recording && (now - recordingStart) > MAX_RECORDING) {
+          if (mediaRecorder && mediaRecorder.state === 'recording') {
+            try { mediaRecorder.stop(); } catch (e) {}
+          }
+        }
+      } else {
+        if (recording) {
+          if (!silenceStart) silenceStart = now;
+          
+          if (now - silenceStart > SILENCE_DURATION) {
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+              try { mediaRecorder.stop(); } catch (e) {}
+            }
+            silenceStart = null;
+          }
+        }
+      }
+      
+      requestAnimationFrame(tick);
+    };
+    
+    requestAnimationFrame(tick);
+  }
+  
+  async transcribeWithWhisper(audioBlob) {
+    // Suppress only during the bleed tail after TTS ends.
+    // AI lastAISpeechEnd is set at actual end (not start), so this only covers the reverb tail.
+    // Browser/category bleed: covered by threshold multiplier in VAD + short post-end window.
+    const now = Date.now();
+    const aiBleed = now < (this.state.lastAISpeechEnd || 0) + 200;
+    const catBleed = now < (this.state.lastCategoryTTSEnd || 0) + 250;
+    const browserBleed = speechSynthesis.speaking || now < (this.state.lastBrowserTTSEnd || 0) + 400;
+    if (aiBleed || catBleed || browserBleed) return;
+
+    try {
+      const formData = new FormData();
+      const extension = audioBlob.type.includes('webm') ? 'webm' :
+                       audioBlob.type.includes('mp4') ? 'mp4' : 'ogg';
+      formData.append('file', audioBlob, `audio.${extension}`);
+      formData.append('model', 'whisper-1');
+      formData.append('language', 'en');
+
+      const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${this.state.apiKey}` },
+        body: formData
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        this.log(`Whisper API error ${response.status}: ${errorText.substring(0, 100)}`, 'error');
+        return;
+      }
+
+      const data = await response.json();
+      const transcript = (data.text || '').trim();
+
+      if (!transcript || transcript.length === 0) return;
+
+      // Strip punctuation for exact-match tests, keep original for pattern tests
+      const lower = transcript.toLowerCase().trim().replace(/[.!?,;:]/g, '');
+
+      // Exact-match noise words — single words/phrases Whisper emits for silence/music
+      const noiseWords = new Set([
+        'thank you', 'you', 'thanks', 'thanks for watching', 'thank you for watching',
+        'thanks for listening', 'bye', 'okay', 'mm', 'mhm', 'uh', 'um', 'ah',
+        'amen', 'yeah', 'bye bye', 'bye-bye', 'hmm', 'hm', 'oh', 'alright',
+        'all right', 'ok', 'so', 'right', 'sure', 'indeed', 'well',
+        'hello', 'hi', 'hey', 'good', 'great', 'nice', 'wow', 'whoa',
+        'i see', 'i know', 'of course', 'no problem', 'absolutely'
+      ]);
+      if (noiseWords.has(lower) || lower.length < 3) {
+        this.log(`[VOICE filtered] "${transcript}"`, 'system');
+        return;
+      }
+
+      // Pattern-based hallucination filter — Whisper's YouTube-subtitle training data
+      // produces these when fed near-silent, noisy, or music-only audio.
+      const hallucinationPatterns = [
+        /\b(www\.|https?:\/\/)/i,                              // URLs
+        /\.(com|org|net|co\.uk|io|tv|gov|edu)\b/i,             // TLDs
+        /\[.*?\]\(.*?\)/,                                       // Markdown links
+        /\bsubs?\s+by\b/i,
+        /\bsubtitles?\s+by\b/i,
+        /\b(captions?|transcription)\s+by\b/i,
+        /\bthanks?\s+for\s+(watching|listening|joining)/i,
+        /\b(please\s+)?(subscribe|like\s+and\s+subscribe)/i,
+        /\bclick\s+(here|the\s+link)\b/i,
+        /\bsee\s+you\s+(in\s+the\s+)?next\s+(video|episode)/i,
+        /[♪♫♬♩]/,                                              // Music note symbols
+        /^\s*[\[(][\w\s,!]+[\])]\s*$/,                          // [Music] / (Applause) etc.
+        /\bdon'?t\s+forget\s+to\b/i,                           // "don't forget to..."
+        /\blike\s+(and\s+)?(comment|share|subscribe)\b/i,
+        /\b(hit|smash|tap)\s+(the\s+)?(like|bell|button)\b/i,
+        /\bnotification\s+bell\b/i,
+        /\b(my|our)\s+(channel|patreon|merch|podcast)\b/i,
+        /\blink\s+in\s+(the\s+)?description\b/i,
+        /\bcheck\s+out\s+(my|the|our)\b/i,
+        /\b(i'?ll|i\s+will)\s+see\s+you\b/i,
+        /\bhope\s+you\s+(enjoyed|liked|had\s+fun)\b/i,
+        /\blet\s+me\s+know\s+in\s+the\s+comments\b/i,
+        /\buntil\s+next\s+time\b/i,
+        /\bthis\s+(video|episode|tutorial|stream|clip)\b/i,
+        /\bwatch\s+until\s+the\s+end\b/i,
+        /\bturned\s+on\s+(notifications?|alerts?)\b/i,
+        /(\b\w+\b)(?:\W+\1){2,}/i,                             // Word repeated 3+ times
+        /^[\W\d]+$/,                                            // No letters at all
+      ];
+      for (const pattern of hallucinationPatterns) {
+        if (pattern.test(transcript)) {
+          this.log(`[VOICE filtered hallucination] "${transcript}"`, 'system');
+          return;
+        }
+      }
+      
+      this.log(`[VOICE] "${transcript}"`, 'voice');
+      
+      // Player has spoken - cancel any low-priority AI speech currently playing
+      // and clear low-priority items from the queue so the response plays immediately
+      this.cancelLowPriorityAI();
+      
+      // Track this as user input for echo detection
+      this.state.recentUserInputs = this.state.recentUserInputs || [];
+      this.state.recentUserInputs.push({ text: transcript, time: Date.now() });
+      if (this.state.recentUserInputs.length > 5) this.state.recentUserInputs.shift();
+      
+      this.processVoiceCommand(transcript);
+    } catch (e) {
+      this.log(`Transcription error: ${e.message}`, 'error');
+    }
+  }
+  
+  cancelLowPriorityAI() {
+    // Stop currently playing AI if it's priority 1 or higher (everything except acks)
+    // This makes conversation feel snappy - new player input always interrupts old responses
+    if (this.state.currentlyPlayingPriority !== null && this.state.currentlyPlayingPriority >= 1) {
+      if (this.state.currentTTSSource) {
+        try { this.state.currentTTSSource.stop(); } catch (e) {}
+        this.state.currentTTSSource = null;
+      }
+      // For browser TTS, cancel speechSynthesis (this only affects AI since categories already played)
+      if (!this.state.useTTS) {
+        try { speechSynthesis.cancel(); } catch (e) {}
+      }
+      this.state.currentlyPlayingPriority = null;
+    }
+    // Drop any non-ack items from the queue
+    const beforeLen = this.state.aiSpeechQueue.length;
+    this.state.aiSpeechQueue = this.state.aiSpeechQueue.filter(item => item.priority < 1);
+    this.state.aiSpeechQueue.forEach(item => {
+      // Already filtered, this is just to safety-resolve any dropped callbacks elsewhere
+    });
+    if (this.state.aiSpeechQueue.length < beforeLen) {
+      this.log(`Cleared ${beforeLen - this.state.aiSpeechQueue.length} AI items for player response`, 'system');
+    }
+  }
+  
+  // ============== IPA Conversion & Pitch Detection ==============
+  
+  // Convert /IPA/ patterns to English phonetic approximation for TTS
+  // Example: "/eɪ/ flat major" → "ay flat major"
+  convertIPA(text) {
+    if (!text || !text.includes('/')) return text;
+    
+    return text.replace(/\/([^/\s]+)\//g, (match, ipa) => {
+      const ipaMap = {
+        // Diphthongs and complex sounds (longer keys, matched first)
+        'eɪ': 'ay', 'aɪ': 'eye', 'ɔɪ': 'oy', 'aʊ': 'ow', 'oʊ': 'oh',
+        'iː': 'ee', 'ɑː': 'ah', 'ɔː': 'aw', 'uː': 'oo', 'ɜː': 'er',
+        'tʃ': 'ch', 'dʒ': 'j', 'ɪə': 'eer', 'eə': 'air', 'ʊə': 'oor',
+        // Single-char vowels
+        'i': 'ee', 'ɪ': 'ih', 'ɛ': 'eh', 'e': 'eh', 'æ': 'a',
+        'ɑ': 'ah', 'ɒ': 'o', 'ɔ': 'aw', 'a': 'a',
+        'u': 'oo', 'ʊ': 'uh', 'ʌ': 'uh', 'ə': 'uh', 'ɜ': 'er',
+        'ɝ': 'er', 'ɚ': 'er', 'o': 'oh',
+        // Consonants
+        'θ': 'th', 'ð': 'th', 'ʃ': 'sh', 'ʒ': 'zh', 'ŋ': 'ng',
+        'j': 'y', 'ɡ': 'g', 'r': 'r', 'ɹ': 'r',
+        // Stress, length, syllable boundary marks - strip these
+        'ˈ': '', 'ˌ': '', 'ː': '', '.': ''
+      };
+      
+      // Sort keys by length descending so multi-char matched first
+      const keys = Object.keys(ipaMap).sort((a, b) => b.length - a.length);
+      
+      let result = '';
+      let i = 0;
+      while (i < ipa.length) {
+        let matched = false;
+        for (const key of keys) {
+          if (ipa.substr(i, key.length) === key) {
+            result += ipaMap[key];
+            i += key.length;
+            matched = true;
+            break;
+          }
+        }
+        if (!matched) {
+          // Unknown character, pass through (most consonants like p, b, t, d, k, etc.)
+          result += ipa[i];
+          i++;
+        }
+      }
+      return result;
+    });
+  }
+  
+  // FFT-based pitch detection - find dominant frequency in voice range
+  // ============== Volume Threshold Calibration ==============
+  // Two-step calibration: measure speaker bleed, then player voice level.
+  // Sets a threshold between them so only player voice triggers recording.
+  
+  async calibrateVoice() {
+    const calibBtn = document.getElementById('calibBtn');
+    const statusDiv = document.getElementById('calibStatus');
+    const update = (msg) => { if (statusDiv) statusDiv.innerHTML = msg; };
+    
+    if (calibBtn) calibBtn.disabled = true;
+    
+    // Set calibrating flag FIRST so VAD doesn't process anything during setup
+    this.state.calibrating = true;
+    
+    // Clear any pending AI speech that might interfere with calibration
+    this.state.aiSpeechQueue.forEach(item => {
+      if (item.onSpoken) try { item.onSpoken(); } catch (e) {}
+    });
+    this.state.aiSpeechQueue = [];
+    
+    // Cancel any currently playing AI audio
+    if (this.state.currentTTSSource) {
+      try { this.state.currentTTSSource.stop(); } catch (e) {}
+      this.state.currentTTSSource = null;
+      this.state.currentlyPlayingPriority = null;
+    }
+    try { speechSynthesis.cancel(); } catch (e) {}
+    
+    // Auto-enable the mic if not already on
+    if (!this.state.micEnabled) {
+      update('Enabling microphone...');
+      try {
+        await this.toggleMic();
+      } catch (e) {
+        update(`<span style="color:#a33;">Could not enable microphone: ${e.message}</span>`);
+        if (calibBtn) calibBtn.disabled = false;
+        this.state.calibrating = false;
+        return;
+      }
+      // Wait briefly for VAD to initialize
+      await new Promise(r => setTimeout(r, 600));
+    }
+    
+    if (!this.state.audioStream) {
+      update('<span style="color:#a33;">Microphone not available.</span>');
+      if (calibBtn) calibBtn.disabled = false;
+      this.state.calibrating = false;
+      return;
+    }
+    
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    const ctx = this.state.audioContext || new AudioCtx();
+    if (ctx.state === 'suspended') {
+      try { await ctx.resume(); } catch (e) {}
+    }
+    
+    // Use existing VAD analyser if available, otherwise make a temporary one
+    let analyser = this.state.vadAnalyser;
+    let tempSource = null;
+    if (!analyser) {
+      tempSource = ctx.createMediaStreamSource(this.state.audioStream);
+      analyser = ctx.createAnalyser();
+      analyser.fftSize = 2048;
+      analyser.smoothingTimeConstant = 0.5;
+      tempSource.connect(analyser);
+    }
+    
+    const dataArray = new Uint8Array(analyser.frequencyBinCount);
+    
+    // Helper to collect mic levels for a given duration
+    const collectLevels = (duration, statusFn) => {
+      return new Promise(resolve => {
+        const levels = [];
+        const startT = Date.now();
+        const tick = () => {
+          const elapsed = Date.now() - startT;
+          if (elapsed >= duration) { resolve(levels); return; }
+          
+          analyser.getByteFrequencyData(dataArray);
+          let sum = 0;
+          for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+          const avg = sum / dataArray.length;
+          levels.push(avg);
+          
+          if (statusFn) statusFn(elapsed, avg);
+          requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      });
+    };
+    
+    try {
+      // ============ INTRO ============
+      update('Preparing calibration...');
+      await this.playCalibrationSample("Voice level calibration. Step one of two.");
+      await new Promise(r => setTimeout(r, 400));
+      
+      // STEP 1: Measure speaker bleed
+      // Plays both AI voice and a sample category voice so bleed reflects what will
+      // actually happen during a session (where both audio paths contribute).
+      update('<strong>Step 1 of 2:</strong> Stay quiet — playing sample voices to measure bleed...');
+      
+      const playPromise = (async () => {
+        // AI voice samples (at AI volume)
+        await this.playCalibrationSample("Please stay silent for the next several seconds.", 'ai');
+        await new Promise(r => setTimeout(r, 200));
+        await this.playCalibrationSample("I am measuring background bleed from your speakers.", 'ai');
+        await new Promise(r => setTimeout(r, 200));
+        // Category voice samples (at category volume, if enabled)
+        await this.playCalibrationSample("Continuing to measure with category voice.", 'category');
+        await new Promise(r => setTimeout(r, 200));
+        await this.playCalibrationSample("Please remain quiet.", 'category');
+      })();
+      
+      // Collect bleed samples while voices play (~12s window to fit both phrases)
+      const bleedLevels = await collectLevels(12000, (elapsed, avg) => {
+        const secsLeft = Math.ceil((12000 - elapsed) / 1000);
+        update(`<strong>Step 1 of 2:</strong> Stay quiet (${secsLeft}s) — current mic level: ${avg.toFixed(1)}`);
+      });
+      
+      await playPromise;  // ensure all sample audio finished
+      await new Promise(r => setTimeout(r, 400));
+      
+      // ============ STEP 2: Measure player voice ============
+      update('<strong>Step 2 of 2:</strong> Listen for the prompt...');
+      await this.playCalibrationSample("Step two. When you hear go, speak normally for five seconds.");
+      await new Promise(r => setTimeout(r, 500));
+      await this.playCalibrationSample("Go.");
+      await new Promise(r => setTimeout(r, 600));  // let "Go" audio settle before measuring
+      
+      update('<strong>SPEAK NOW</strong> (5s)');
+      
+      const voiceLevels = await collectLevels(5000, (elapsed, avg) => {
+        const secsLeft = Math.ceil((5000 - elapsed) / 1000);
+        update(`<strong>Step 2 of 2:</strong> Keep speaking (${secsLeft}s) — current mic level: ${avg.toFixed(1)}`);
+      });
+      
+      // ============ Compute threshold ============
+      if (bleedLevels.length < 20 || voiceLevels.length < 20) {
+        update('<span style="color:#a33;">Calibration failed: not enough samples.</span>');
+        return;
+      }
+      
+      // Bleed: take 90th percentile (worst-case bleed)
+      bleedLevels.sort((a, b) => a - b);
+      const bleed90 = bleedLevels[Math.floor(bleedLevels.length * 0.90)];
+      const bleedMax = bleedLevels[bleedLevels.length - 1];
+      
+      // Voice: take 30th percentile (catches softer moments of speech, ignores quiet gaps)
+      // We use sorted voice levels, but ignore the bottom 30% which is likely silence between words
+      voiceLevels.sort((a, b) => a - b);
+      const voice30 = voiceLevels[Math.floor(voiceLevels.length * 0.30)];
+      const voice50 = voiceLevels[Math.floor(voiceLevels.length * 0.50)];
+      const voiceMax = voiceLevels[voiceLevels.length - 1];
+      
+      // Detect overall low mic input (both bleed and voice barely registering)
+      const veryLow = bleed90 < 1 && voice30 < 1;
+      
+      // Find a sensible threshold: above bleed, below voice
+      let threshold;
+      let warning = '';
+      
+      if (veryLow) {
+        // Mic levels are very low overall - input gain likely too low
+        threshold = 2;
+        warning = ' <span style="color:#a33;">(WARNING: mic input level very low — turn up input gain in System Settings → Sound → Input, then recalibrate)</span>';
+      } else if (voice30 > bleed90 * 1.5) {
+        // Clean separation - put threshold midway, biased slightly toward bleed
+        threshold = (bleed90 * 1.3 + voice30 * 0.7) / 2;
+      } else if (voice30 > bleed90) {
+        // Some separation - put threshold just above bleed, but ensure it's below voice30
+        // so quiet parts of speech still register
+        threshold = Math.min(bleed90 * 1.1, voice30 * 0.85);
+        warning = ' <span style="color:#a86;">(narrow margin — quiet syllables may not trigger; try closer mic or OpenAI voices)</span>';
+      } else {
+        // Voice level overlaps bleed - mic isolation isn't workable for this setup
+        threshold = voice30 * 0.85;
+        warning = ' <span style="color:#a33;">(WARNING: voice ≤ bleed — try OpenAI TTS for all voices, or use a closer/directional mic)</span>';
+      }
+      
+      // Clamp to sane range. Floor of 2 lets calibration work with low-input setups
+      // (where bleed=0.2, voice=4 would otherwise be clamped above the voice level).
+      threshold = Math.max(2, Math.min(200, threshold));
+      
+      this.state.calibratedThreshold = threshold;
+      this.state.calibrationDetails = {
+        threshold: threshold,
+        bleed: bleed90,
+        voice: voice30,
+        calibratedAt: Date.now()
+      };
+      this.saveToStorage();
+      
+      update(`<strong>Calibrated</strong> — threshold ${threshold.toFixed(1)} (bleed ${bleed90.toFixed(1)}, voice ${voice30.toFixed(1)})${warning}`);
+      this.log(`[Calibration] threshold=${threshold.toFixed(1)} bleed90=${bleed90.toFixed(1)} voice30=${voice30.toFixed(1)}`, 'system');
+      
+      // Audio confirmation
+      await new Promise(r => setTimeout(r, 300));
+      if (warning) {
+        await this.playCalibrationSample("Calibration finished with a warning. Check the status message.");
+      } else {
+        await this.playCalibrationSample("Calibration complete.");
+      }
+      
+    } catch (e) {
+      update(`<span style="color:#a33;">Calibration error: ${e.message}</span>`);
+      this.log(`Calibration error: ${e.message}`, 'error');
+    } finally {
+      if (calibBtn) calibBtn.disabled = false;
+      if (tempSource) { try { tempSource.disconnect(); } catch (e) {} }
+      // Re-enable VAD recording now that calibration is done
+      this.state.calibrating = false;
+    }
+  }
+  
+  // Play one phrase using whichever TTS the user has configured (so bleed reflects production).
+  // mode='ai' uses the AI voice + AI volume; mode='category' uses a category voice + category volume.
+  async playCalibrationSample(phrase, mode = 'ai') {
+    if (mode === 'category' && this.state.useCategoryTTS && this.state.apiKey) {
+      // Play with category voice settings (uses category volume slider)
+      const voiceName = this.state.voiceAssignments['pitch'] || 'fable';
+      const ttsVoice = this.isValidTTSVoice(voiceName) ? voiceName : 'fable';
+      const volume = parseFloat(document.getElementById('volumeSlider')?.value || '1');
+      const reverb = parseFloat(document.getElementById('categoryReverbSlider')?.value || '0');
+      try {
+        await this.speakWithTTS(phrase, {
+          voice: ttsVoice, pan: 0, reverb: reverb, volume: volume, category: 'pitch'
+        });
+        return;
+      } catch (e) {
+        // Fall through to AI/browser fallback
+      }
+    }
+    
+    if (this.state.useTTS && this.state.apiKey) {
+      // Use OpenAI TTS (player's AI voice)
+      const voiceName = this.state.gptVoice;
+      const ttsVoice = this.isValidTTSVoice(voiceName) ? voiceName : 'onyx';
+      const volume = parseFloat(document.getElementById('aiVolSlider')?.value || '1');
+      try {
+        await this.speakWithTTS(phrase, {
+          voice: ttsVoice, pan: 0, reverb: 0, volume: volume, isAI: true, priority: 0
+        });
+      } catch (e) {
+        // Fall back to browser TTS
+        await this.speakBrowserAndWait(phrase);
+      }
+    } else {
+      await this.speakBrowserAndWait(phrase);
+    }
+  }
+  
+  speakBrowserAndWait(text) {
+    return new Promise(resolve => {
+      const u = new SpeechSynthesisUtterance(text);
+      if (this.state.gptVoice) {
+        const v = this.state.voices.find(x => x.name === this.state.gptVoice);
+        if (v) u.voice = v;
+      }
+      u.rate = this.state.voiceRate || 1.0;
+      u.volume = 1.0;
+      u.onend = () => resolve();
+      u.onerror = () => resolve();
+      setTimeout(() => resolve(), 12000);  // safety timeout
+      speechSynthesis.speak(u);
+    });
+  }
+  
+  clearVoiceCalibration() {
+    this.state.calibratedThreshold = undefined;
+    this.state.calibrationDetails = null;
+    try {
+      localStorage.removeItem('jt_calibratedThreshold');
+      localStorage.removeItem('jt_calibrationDetails');
+    } catch (e) {}
+    const statusDiv = document.getElementById('calibStatus');
+    if (statusDiv) statusDiv.textContent = 'Not calibrated';
+    this.log('Voice calibration cleared', 'system');
+  }
+  
+  updateCalibrationStatus() {
+    const statusDiv = document.getElementById('calibStatus');
+    if (!statusDiv) return;
+    const d = this.state.calibrationDetails;
+    if (d) {
+      statusDiv.innerHTML = `Calibrated: threshold ${d.threshold.toFixed(1)} (bleed ${d.bleed.toFixed(1)}, voice ${d.voice.toFixed(1)})`;
+    } else {
+      statusDiv.textContent = 'Not calibrated';
+    }
+  }
+  
+  // ============== Speech tracking & echo detection ==============
+  
+  trackAISpeech(text) {
+    // Kept for compatibility; no longer used for filtering now that calibration handles bleed
+    this.state.recentAISpeech = this.state.recentAISpeech || [];
+    this.state.recentAISpeech.push({ text, time: Date.now() });
+    if (this.state.recentAISpeech.length > 5) this.state.recentAISpeech.shift();
+  }
+  
+  trackSpeech(text) {
+    // Kept for compatibility; no longer used for filtering
+  }
+  
+  async processVoiceCommand(command) {
+    this.state.voiceCommandLock = true;
+    const lower = command.toLowerCase();
+    try {
+      if (lower.includes('that is all')) {
+        this.speakGPT('Ending session.', 0);
+        setTimeout(() => this.stop(), 1500);
+        return;
+      }
+      if (['pause', 'hold on', 'wait'].some(k => lower.includes(k)) && !lower.includes('continue')) {
+        if (!this.state.paused && this.state.running) { this.pause(); this.speakGPT('Paused.', 0); }
+        return;
+      }
+      if (['continue', 'resume', 'carry on'].some(k => lower.includes(k))) {
+        if (this.state.paused) { this.play(); this.speakGPT('Continuing.', 0); }
+        return;
+      }
+      if (lower.match(/\bslow(er| down)\b/) || lower.match(/^slow\b/)) {
+        this.state.voiceRate = Math.max(0.5, this.state.voiceRate - 0.2);
+        this.state.timingMultiplier = Math.min(3.0, this.state.timingMultiplier * 1.4);
+        this.updateRate(this.state.voiceRate);
+        this.speakGPT('Slowing down.', 0);
+        return;
+      }
+      if (lower.match(/\bfast(er)?\b/) || lower.includes('speed up') || lower.includes('quicker')) {
+        this.state.voiceRate = Math.min(2.0, this.state.voiceRate + 0.2);
+        this.state.timingMultiplier = Math.max(0.3, this.state.timingMultiplier * 0.6);
+        this.updateRate(this.state.voiceRate);
+        this.speakGPT('Speeding up.', 0);
+        return;
+      }
+      if (lower.includes('normal speed') || lower.includes('reset speed') || lower.includes('back to normal') || lower === 'normal' || lower === 'normal.') {
+        this.state.voiceRate = 1.0;
+        this.state.timingMultiplier = 1.0;
+        this.updateRate(1.0);
+        this.speakGPT('Normal speed.', 0);
+        return;
+      }
+      if (['field recording', 'natural sound', 'space'].some(k => lower.includes(k))) {
+        this.playMusic('field');
+        this.speakGPT('Playing natural sounds.', 0);
+        return;
+      }
+      if (['focus music', 'focus'].some(k => lower.includes(k)) && !lower.includes('relax')) {
+        this.playMusic('focus');
+        this.speakGPT('Playing focus music.', 0);
+        return;
+      }
+      if (['relaxing music', 'relax'].some(k => lower.includes(k))) {
+        this.playMusic('relaxing');
+        this.speakGPT('Playing relaxing music.', 0);
+        return;
+      }
+      if (['motivational music', 'motivate', 'high energy'].some(k => lower.includes(k))) {
+        this.playMusic('motivational');
+        this.speakGPT('Playing motivational music.', 0);
+        return;
+      }
+      // Hold music - "hold on" already handled by pause check above
+      if (lower.includes('hold music') || lower.includes('play hold') || lower === 'hold' || lower === 'hold.') {
+        this.playMusic('hold');
+        this.speakGPT('Playing hold music.', 0);
+        return;
+      }
+      if (['stop the music', 'stop music', 'music off', 'turn off music'].some(k => lower.includes(k))) {
+        this.stopAllMusic();
+        this.speakGPT('Music stopped.', 0);
+        return;
+      }
+      if (lower.trim() === 'stop') { this.stopAllMusic(); return; }
+      if (['no thanks', 'no thank you', 'nope', "that's enough"].some(k => lower.includes(k))) {
+        this.speakGPT('Understood.', 0);
+        return;
+      }
+      await this.handleConversationalInput(command);
+    } finally {
+      this.state.voiceCommandLock = false;
+    }
+  }
+  
+  async handleConversationalInput(userMessage) {
+    if (!this.state.apiKey) { this.log('No API key.', 'error'); return; }
+    this.state.gptInProgress = true;
+    try {
+      this.state.conversationHistory.push({ role: 'user', content: userMessage });
+      if (this.state.conversationHistory.length > 20) {
+        this.state.conversationHistory = this.state.conversationHistory.slice(-20);
+      }
+      const messages = [
+        { role: 'system', content: 'You are an AI assistant guiding a live musical performance. The performer just said something to you. Respond briefly (1-2 short sentences), naturally and supportively. Do not use markdown.' },
+        ...this.state.conversationHistory
+      ];
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.state.apiKey}` },
+        body: JSON.stringify({ model: 'gpt-4o-mini', messages, max_tokens: 150, temperature: 0.8 })
+      });
+      if (!response.ok) { this.log(`GPT API error: ${response.status}`, 'error'); return; }
+      const data = await response.json();
+      const text = data.choices[0].message.content.trim();
+      this.state.conversationHistory.push({ role: 'assistant', content: text });
+      this.log(`[GPT] "${text}"`, 'gpt');
+      this.speakGPT(text, 1);
+    } catch (e) {
+      this.log(`GPT error: ${e.message}`, 'error');
+    } finally {
+      this.state.gptInProgress = false;
+    }
+  }
+  
+  loadFromStorage() {
+    try {
+      this.state.apiKey = localStorage.getItem('jt_apiKey') || '';
+      const va = localStorage.getItem('jt_voiceAssignments');
+      if (va) this.state.voiceAssignments = JSON.parse(va);
+      this.state.gptVoice = localStorage.getItem('jt_gptVoice') || '';
+      const pan = localStorage.getItem('jt_voicePanning');
+      if (pan) this.state.voicePanning = JSON.parse(pan);
+      const ct = localStorage.getItem('jt_calibratedThreshold');
+      if (ct) this.state.calibratedThreshold = parseFloat(ct);
+      const cd = localStorage.getItem('jt_calibrationDetails');
+      if (cd) this.state.calibrationDetails = JSON.parse(cd);
+      this.state.inputDeviceId = localStorage.getItem('jt_inputDeviceId') || '';
+      this.state.outputDeviceId = localStorage.getItem('jt_outputDeviceId') || '';
+      this.state.micGain = parseFloat(localStorage.getItem('jt_micGain') || '1.0');
+    } catch (e) {}
+  }
+  
+  saveToStorage() {
+    try {
+      localStorage.setItem('jt_apiKey', this.state.apiKey);
+      localStorage.setItem('jt_voiceAssignments', JSON.stringify(this.state.voiceAssignments));
+      localStorage.setItem('jt_gptVoice', this.state.gptVoice);
+      localStorage.setItem('jt_voicePanning', JSON.stringify(this.state.voicePanning));
+      if (this.state.calibratedThreshold !== undefined) {
+        localStorage.setItem('jt_calibratedThreshold', String(this.state.calibratedThreshold));
+      }
+      if (this.state.calibrationDetails) {
+        localStorage.setItem('jt_calibrationDetails', JSON.stringify(this.state.calibrationDetails));
+      }
+      localStorage.setItem('jt_inputDeviceId', this.state.inputDeviceId || '');
+      localStorage.setItem('jt_outputDeviceId', this.state.outputDeviceId || '');
+      localStorage.setItem('jt_micGain', String(this.state.micGain || 1.0));
+    } catch (e) {}
+  }
+  
+  async populateAudioDevices() {
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const inputSelect = document.getElementById('inputDeviceSelect');
+      const outputSelect = document.getElementById('outputDeviceSelect');
+      const outputNote = document.getElementById('outputDeviceNote');
+
+      const inputs = devices.filter(d => d.kind === 'audioinput');
+      inputSelect.innerHTML = '<option value="">Default</option>' +
+        inputs.map((d, i) => `<option value="${d.deviceId}">${d.label || `Microphone ${i + 1}`}</option>`).join('');
+      inputSelect.value = this.state.inputDeviceId || '';
+
+      const outputs = devices.filter(d => d.kind === 'audiooutput');
+      if ('setSinkId' in HTMLAudioElement.prototype) {
+        outputSelect.innerHTML = '<option value="">Default</option>' +
+          outputs.map((d, i) => `<option value="${d.deviceId}">${d.label || `Speaker ${i + 1}`}</option>`).join('');
+        outputSelect.value = this.state.outputDeviceId || '';
+        outputSelect.disabled = false;
+        if (outputNote) outputNote.style.display = 'none';
+      } else {
+        outputSelect.disabled = true;
+        if (outputNote) outputNote.style.display = '';
+      }
+    } catch (e) {
+      this.log(`Device enumeration failed: ${e.message}`, 'error');
+    }
+  }
+
+  async setInputDevice(deviceId) {
+    this.state.inputDeviceId = deviceId;
+    localStorage.setItem('jt_inputDeviceId', deviceId);
+    if (this.state.micEnabled) {
+      await this.toggleMic();
+      await this.toggleMic();
+    }
+  }
+
+  async setOutputDevice(deviceId) {
+    this.state.outputDeviceId = deviceId;
+    localStorage.setItem('jt_outputDeviceId', deviceId);
+    const ctx = this.state.ttsAudioContext;
+    if (ctx && ctx.setSinkId) {
+      ctx.setSinkId(deviceId || '').catch(() => {});
+    }
+    if (this.state.currentMusic && this.state.currentMusic.setSinkId) {
+      this.state.currentMusic.setSinkId(deviceId || '').catch(() => {});
+    }
+    if (this.state.currentHoldMusic && this.state.currentHoldMusic.setSinkId) {
+      this.state.currentHoldMusic.setSinkId(deviceId || '').catch(() => {});
+    }
+  }
+
+  setMicGain(value) {
+    const gain = parseFloat(value);
+    this.state.micGain = gain;
+    document.getElementById('micGainValue').textContent = gain.toFixed(1);
+    if (this.state.micGainNode) this.state.micGainNode.gain.value = gain;
+    localStorage.setItem('jt_micGain', String(gain));
+  }
+
+  showApiKeyModal() {
+    document.getElementById('apiKeyInput').value = this.state.apiKey;
+    document.getElementById('apiKeyModal').classList.add('active');
+  }
+  closeApiKeyModal() { document.getElementById('apiKeyModal').classList.remove('active'); }
+  saveApiKey() {
+    const key = document.getElementById('apiKeyInput').value.trim();
+    if (key && !key.startsWith('sk-')) { alert('API key should start with "sk-"'); return; }
+    this.state.apiKey = key;
+    this.saveToStorage();
+    this.closeApiKeyModal();
+    this.log(key ? 'API key saved.' : 'API key cleared.', 'info');
+  }
+  
+  loadScore(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target.result;
+      this.state.uploadedScores[file.name] = content;
+      this.parseScore(content);
+      
+      // Add to dropdown
+      const sel = document.getElementById('scoreSelect');
+      if (sel) {
+        const value = `__uploaded__${file.name}`;
+        const existing = Array.from(sel.options).find(o => o.value === value);
+        if (!existing) {
+          const opt = document.createElement('option');
+          opt.value = value;
+          opt.textContent = `[uploaded] ${file.name}`;
+          sel.appendChild(opt);
+        }
+        sel.value = value;
+        sel.style.display = 'block';
+      }
+      
+      document.getElementById('scoreInfo').textContent = `${file.name} (uploaded)`;
+      this.log(`Score uploaded: ${file.name} (${this.state.scoreEvents.length} events)`, 'info');
+    };
+    reader.readAsText(file);
+  }
+  
+  parseScore(content) {
+    const lines = content.split('\n');
+    const events = [];
+    let globalGPT = [];
+    let i = 0;
+    while (i < lines.length) {
+      const line = lines[i].trim();
+      if (!line) { i++; continue; }
+      if (line.toLowerCase().startsWith('global:')) {
+        i++;
+        while (i < lines.length && lines[i].trim().startsWith('-')) {
+          globalGPT.push(lines[i].trim().substring(1).trim());
+          i++;
+        }
+        continue;
+      }
+      const timeMatch = line.match(/^(\d{1,2}):(\d{2})\s*$/);
+      if (timeMatch) {
+        const time = parseInt(timeMatch[1]) * 60 + parseInt(timeMatch[2]);
+        const instructions = [];
+        i++;
+        while (i < lines.length) {
+          const next = lines[i].trim();
+          if (!next) { i++; continue; }
+          if (next.match(/^\d{1,2}:\d{2}/)) break;
+          if (next.toLowerCase().startsWith('global:')) break;
+          if (next.toLowerCase() === 'end') { events.push({ time, type: 'end', instructions: [] }); i++; break; }
+          instructions.push(next);
+          i++;
+        }
+        if (instructions.length > 0) events.push({ time, type: 'cue_change', instructions, raw: instructions.join('\n') });
+        continue;
+      }
+      const inlineGPT = line.match(/^(\d{1,2}):(\d{2})\s+GPT:\s*(.+)$/i);
+      if (inlineGPT) {
+        const time = parseInt(inlineGPT[1]) * 60 + parseInt(inlineGPT[2]);
+        events.push({ time, type: 'gpt', content: inlineGPT[3], raw: line });
+        i++;
+        continue;
+      }
+      i++;
+    }
+    events.sort((a, b) => a.time - b.time);
+    this.state.scoreEvents = events;
+    this.state.globalGPT = globalGPT;
+    
+    // Auto-update duration from highest time in score
+    if (events.length > 0) {
+      const maxTime = events[events.length - 1].time;
+      const mins = Math.floor(maxTime / 60);
+      const secs = maxTime % 60;
+      const durationStr = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+      document.getElementById('duration').value = durationStr;
+      this.log(`Duration auto-set to ${durationStr} (from score)`, 'info');
+    }
+    
+    this.log(`Parsed ${events.length} events, ${globalGPT.length} global GPT instructions`, 'info');
+  }
+  
+  clearScore() {
+    this.state.scoreEvents = [];
+    this.state.globalGPT = [];
+    document.getElementById('scoreInfo').textContent = 'No score loaded';
+    document.getElementById('scoreFile').value = '';
+    const sel = document.getElementById('scoreSelect');
+    if (sel) sel.value = '';
+    this.log('Score cleared.', 'info');
+  }
+  
+  loadCategories(event) {
+    const files = event.target.files;
+    if (!files.length) return;
+    let loaded = 0;
+    Array.from(files).forEach(file => {
+      const categoryName = file.name.replace('.csv', '').toLowerCase();
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        let items = this.parseCSV(e.target.result);
+        if (categoryName === 'extract') {
+          items = this.repairExtractItems(items);
+        } else if (categoryName === 'chord_major') {
+          items = this.repairChordItems(items, 'major');
+        } else if (categoryName === 'chord_minor') {
+          items = this.repairChordItems(items, 'minor');
+        }
+        this.state.categoriesData[categoryName] = items;
+        loaded++;
+        if (loaded === files.length) this.updateCategoriesInfo();
+        const sample = items.slice(0, 5).join(' | ');
+        this.log(`Loaded ${items.length} items for "${categoryName}": ${sample}${items.length > 5 ? ' | ...' : ''}`, 'info');
+      };
+      reader.readAsText(file);
+    });
+  }
+  
+  parseCSV(content) {
+    const items = [];
+    const lines = content.split('\n');
+    for (const line of lines) {
+      const cells = line.split(',');
+      for (const cell of cells) {
+        const trimmed = cell.trim().replace(/^["']|["']$/g, '');
+        if (trimmed) items.push(trimmed);
+      }
+    }
+    return items;
+  }
+  
+  // Strips ALL leading "extract" + separator tokens. Handles accidental doubling
+  // like "extract extract-one" → "one", and normal "extract-one" → "one".
+  stripExtractPrefix(s) {
+    let r = (s || '').trim();
+    while (/^extract[\s:,_-]/i.test(r)) {
+      r = r.replace(/^extract[\s:,_-]+/i, '');
+    }
+    return r;
+  }
+  
+  // Normalizes the extract category: every item becomes a clean "extract <value>"
+  // regardless of CSV format (hyphens, doubled prefixes, lone "extract" tokens, bare values).
+  repairExtractItems(items) {
+    if (!items || items.length === 0) return items;
+    const repaired = [];
+    let i = 0;
+    while (i < items.length) {
+      const it = items[i].trim();
+      const lower = it.toLowerCase();
+      
+      // Lone "extract" token - pair it with the following item's value
+      if (lower === 'extract') {
+        if (i + 1 < items.length) {
+          const value = this.stripExtractPrefix(items[i + 1].trim());
+          if (value && value.length < 30) {
+            repaired.push(`extract ${value}`);
+            i += 2;
+            continue;
+          }
+        }
+        i++;  // lone "extract" with nothing usable after - drop it
+        continue;
+      }
+      
+      // Any other item: strip every "extract" prefix, rebuild as "extract <value>"
+      const value = this.stripExtractPrefix(it);
+      if (value) {
+        repaired.push(`extract ${value}`);
+      }
+      i++;
+    }
+    return repaired;
+  }
+  
+  // Similar repair for chord_major / chord_minor categories where the CSV may have
+  // split "C sharp minor" into "C" + "sharp" + "minor" or similar.
+  repairChordItems(items, chordType) {
+    if (!items || items.length === 0) return items;
+    const repaired = [];
+    const isPitch = (s) => /^[a-g]$/i.test(s);
+    const isAccidental = (s) => /^(sharp|flat)$/i.test(s);
+    const isChordType = (s) => /^(major|minor)$/i.test(s);
+    
+    let i = 0;
+    while (i < items.length) {
+      const it = items[i].trim();
+      
+      // Lone chord-type or accidental: skip (incomplete fragment)
+      if (isAccidental(it) || isChordType(it)) {
+        i++;
+        continue;
+      }
+      
+      // Lone pitch letter: try to build a complete chord from following items
+      if (isPitch(it)) {
+        let parts = [it];
+        if (i + 1 < items.length && isAccidental(items[i + 1].trim())) {
+          parts.push(items[i + 1].trim());
+          i++;
+        }
+        if (i + 1 < items.length && isChordType(items[i + 1].trim())) {
+          parts.push(items[i + 1].trim());
+          i++;
+        } else {
+          // Auto-append the category's chord type so the cue isn't incomplete
+          parts.push(chordType);
+        }
+        repaired.push(parts.join(' '));
+        i++;
+        continue;
+      }
+      
+      // Already-complete chord (e.g. "c-sharp-minor" or "G major") - keep as-is
+      repaired.push(it);
+      i++;
+    }
+    return repaired;
+  }
+  
+  useBuiltInCategories() {
+    this.state.categoriesData = { ...BUILT_IN_CATEGORIES };
+    this.updateCategoriesInfo();
+    this.log('Using built-in sample categories.', 'info');
+  }
+  
+  updateCategoriesInfo() {
+    const info = document.getElementById('categoriesInfo');
+    if (!info) return;  // Element removed from UI - silent no-op
+    const cats = Object.keys(this.state.categoriesData);
+    info.textContent = cats.length === 0 ? 'No categories loaded' : `${cats.length} categories: ${cats.join(', ')}`;
+  }
+  
+  loadMusic(category, event) {
+    const files = event.target.files;
+    if (!files.length) return;
+    Array.from(files).forEach(file => {
+      const url = URL.createObjectURL(file);
+      this.state.musicTracks[category].push({ name: file.name, url, source: 'local' });
+    });
+    this.updateTrackList(category);
+    this.log(`Added ${files.length} ${category} tracks (uploaded)`, 'music');
+  }
+  
+  clearMusic(category) {
+    this.state.musicTracks[category].forEach(t => {
+      if (t.source !== 'server') URL.revokeObjectURL(t.url);
+    });
+    this.state.musicTracks[category] = [];
+    this.updateTrackList(category);
+    this.log(`Cleared ${category} tracks`, 'music');
+  }
+  
+  updateTrackList(category) {
+    const el = document.getElementById('trackList-' + category);
+    const tracks = this.state.musicTracks[category];
+    if (tracks.length === 0) {
+      el.textContent = category === 'hold' ? 'No tracks loaded (plays when paused)' : 'No tracks loaded';
+    } else {
+      el.innerHTML = tracks.map(t => 
+        `<div class="track-item">${t.name}<span class="source-badge ${t.source === 'server' ? '' : 'local'}">${t.source === 'server' ? 'server' : 'local'}</span></div>`
+      ).join('');
+    }
+  }
+  
+  playMusic(category) {
+    const tracks = this.state.musicTracks[category];
+    if (!tracks || tracks.length === 0) {
+      this.log(`No ${category} tracks loaded.`, 'error');
+      return;
+    }
+    this.stopCurrentMusic();
+    const track = tracks[Math.floor(Math.random() * tracks.length)];
+    const audio = new Audio(track.url);
+    audio.volume = this.state.musicVolume;
+    audio.loop = false;
+    if (this.state.outputDeviceId && audio.setSinkId) {
+      audio.setSinkId(this.state.outputDeviceId).catch(() => {});
+    }
+    audio.onended = () => {
+      if (this.state.currentMusicCategory === category && this.state.running) this.playMusic(category);
+    };
+    audio.play().catch(e => this.log(`Failed to play music: ${e.message}`, 'error'));
+    this.state.currentMusic = audio;
+    this.state.currentMusicCategory = category;
+    this.log(`Playing ${category}: ${track.name}`, 'music');
+  }
+  
+  stopCurrentMusic() {
+    if (this.state.currentMusic) {
+      try { this.state.currentMusic.pause(); } catch (e) {}
+      this.state.currentMusic = null;
+      this.state.currentMusicCategory = null;
+    }
+  }
+  
+  stopAllMusic() { this.stopCurrentMusic(); this.stopHoldMusic(); this.log('All music stopped.', 'music'); }
+  
+  startHoldMusic() {
+    const tracks = this.state.musicTracks.hold;
+    if (!tracks || tracks.length === 0) return;
+    this.stopHoldMusic();
+    const track = tracks[Math.floor(Math.random() * tracks.length)];
+    const audio = new Audio(track.url);
+    audio.volume = parseFloat(document.getElementById('musicVolSlider').value);
+    audio.loop = true;
+    if (this.state.outputDeviceId && audio.setSinkId) {
+      audio.setSinkId(this.state.outputDeviceId).catch(() => {});
+    }
+    audio.play().catch(e => this.log(`Failed to play hold music: ${e.message}`, 'error'));
+    this.state.currentHoldMusic = audio;
+    this.log(`Hold music: ${track.name}`, 'music');
+  }
+  
+  stopHoldMusic() {
+    if (this.state.currentHoldMusic) {
+      try { this.state.currentHoldMusic.pause(); } catch (e) {}
+      this.state.currentHoldMusic = null;
+    }
+  }
+  
+  updateMusicVolume(val) {
+    this.state.musicVolume = parseFloat(val);
+    document.getElementById('musicVolValue').textContent = val;
+    if (this.state.currentMusic) this.state.currentMusic.volume = this.state.musicVolume;
+  }
+  
+  updateRate(val) {
+    this.state.voiceRate = parseFloat(val);
+    const valEl = document.getElementById('rateValue');
+    if (valEl) valEl.textContent = parseFloat(val).toFixed(1);
+    const slEl = document.getElementById('rateSlider');
+    if (slEl) slEl.value = val;
+  }
+  
+  play() {
+    if (this.state.paused) {
+      this.state.paused = false;
+      this.state.pausedTime += Date.now() - this.state.pauseStart;
+      this.updateButtonStates();
+      this.updateStatus('Running', 'active');
+      this.log('Session resumed.', 'system');
+      this.stopHoldMusic();
+      if (this.state.currentMusic && this.state.currentMusic.paused) this.state.currentMusic.play().catch(e => {});
+      this.startCueScheduling();
+      return;
+    }
+    if (this.state.running) return;
+    if (!this.state.apiKey) this.log('Warning: No API key.', 'error');
+    if (Object.keys(this.state.categoriesData).length === 0) { this.log('No categories loaded.', 'error'); return; }
+    
+    const durStr = document.getElementById('duration').value.trim();
+    const durMatch = durStr.match(/^(\d+):(\d{2})$/);
+    if (!durMatch) { this.log('Invalid duration.', 'error'); return; }
+    this.state.totalDuration = parseInt(durMatch[1]) * 60 + parseInt(durMatch[2]);
+    
+    this.state.running = true; this.state.paused = false;
+    this.state.sessionStartTime = Date.now();
+    this.state.pausedTime = 0;
+    this.state.activeCategories.clear();
+    this.state.cueIntervals = {};
+    this.state.lastGPTTime = Date.now();
+    this.state.conversationHistory = [];
+    this.state.scoreEvents.forEach(e => e.processed = false);
+    
+    this.updateButtonStates();
+    this.updateStatus('Running', 'active');
+    this.log(`Session started. Duration: ${durStr}`, 'system');
+    
+    this.state.timerInterval = setInterval(() => this.tick(), 100);
+    if (this.state.rehearsalMode) {
+      this.startRehearsalCues();
+    } else {
+      this.processScoreAtTime(0);
+      this.startCueScheduling();
+    }
+    
+    // Warm up browser speechSynthesis in the user-gesture context so timer-fired
+    // cues can call speak() without Chrome's user-activation check blocking them.
+    try {
+      const warmup = new SpeechSynthesisUtterance('');
+      warmup.volume = 0;
+      speechSynthesis.speak(warmup);
+      speechSynthesis.cancel();
+    } catch (e) {}
+
+    // Auto-enable mic on Play if not already on (helps if user forgets)
+    if (!this.state.micEnabled && this.state.apiKey) {
+      this.toggleMic().catch(() => {});
+    }
+  }
+  
+  pause() {
+    if (!this.state.running || this.state.paused) return;
+    this.state.paused = true;
+    this.state.pauseStart = Date.now();
+    this.updateButtonStates();
+    this.updateStatus('Paused', 'paused');
+    this.log('Session paused.', 'system');
+    speechSynthesis.cancel();
+    if (this.state.currentMusic) { try { this.state.currentMusic.pause(); } catch (e) {} }
+    this.startHoldMusic();
+  }
+  
+  stop() {
+    this.state.running = false; this.state.paused = false;
+    this.state.activeCategories.clear();
+    if (this.state.timerInterval) { clearInterval(this.state.timerInterval); this.state.timerInterval = null; }
+    Object.values(this.state.cueIntervals).forEach(t => clearTimeout(t.timer));
+    this.state.cueIntervals = {};
+    
+    // Clear AI speech queue and stop any currently playing AI audio
+    // Resolve any pending onSpoken callbacks so awaiters don't hang
+    this.state.aiSpeechQueue.forEach(item => {
+      if (item.onSpoken) try { item.onSpoken(); } catch (e) {}
+    });
+    this.state.aiSpeechQueue = [];
+    this.state.aiSpeechProcessing = false;
+    this.state.pitchSequencePlaying = false;
+    if (this.state.currentTTSSource) {
+      try { this.state.currentTTSSource.stop(); } catch (e) {}
+      this.state.currentTTSSource = null;
+    }
+    this.state.currentlyPlayingPriority = null;
+    // Clear per-voice playing flags
+    if (this.state.voiceAudioPlaying) {
+      Object.keys(this.state.voiceAudioPlaying).forEach(k => this.state.voiceAudioPlaying[k] = false);
+    }
+    
+    speechSynthesis.cancel();
+    this.stopAllMusic();
+    
+    // Automatically turn off mic when session ends
+    if (this.state.micEnabled) {
+      this.toggleMic();
+    }
+    
+    this.updateButtonStates();
+    this.updateStatus('Stopped', '');
+    document.getElementById('timer').textContent = '00:00';
+    this.log('Session stopped.', 'system');
+  }
+  
+  updateButtonStates() {
+    const playBtn = document.getElementById('playBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    if (!this.state.running) {
+      playBtn.disabled = false; playBtn.textContent = 'Play';
+      pauseBtn.disabled = true; pauseBtn.textContent = 'Pause';
+      stopBtn.disabled = true;
+    } else if (this.state.paused) {
+      playBtn.disabled = false; playBtn.textContent = 'Resume';
+      pauseBtn.disabled = true;
+      stopBtn.disabled = false;
+    } else {
+      playBtn.disabled = true; playBtn.textContent = 'Play';
+      pauseBtn.disabled = false; pauseBtn.textContent = 'Pause';
+      stopBtn.disabled = false;
+    }
+  }
+  
+  updateStatus(text, cls) {
+    document.getElementById('statusLabel').textContent = text;
+    const dot = document.getElementById('statusDot');
+    dot.className = 'status-dot' + (cls ? ' ' + cls : '');
+  }
+  
+  tick() {
+    if (!this.state.running || this.state.paused) return;
+    const now = Date.now();
+    const elapsed = Math.floor((now - this.state.sessionStartTime - this.state.pausedTime) / 1000);
+    if (elapsed !== this.state.elapsedSeconds) {
+      this.state.elapsedSeconds = elapsed;
+      document.getElementById('timer').textContent = this.formatTime(elapsed);
+      if (!this.state.rehearsalMode) this.processScoreAtTime(elapsed);
+      if (elapsed >= this.state.totalDuration) { this.log('Session complete.', 'system'); this.stop(); return; }
+      // Auto-trigger GPT periodically (suppressed in rehearsal mode when AI voice is off)
+      this.state.gptInterval = 40000;
+      if (this.state.apiKey && !this.state.gptInProgress && (now - this.state.lastGPTTime) > this.state.gptInterval) {
+        if (!this.state.rehearsalMode || this.state.rehearsalAIVoice) this.maybeRunGPT();
+      }
+    }
+  }
+  
+  formatTime(seconds) {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  }
+  
+  processScoreAtTime(time) {
+    if (!this.state.scoreEvents) return;
+    for (const event of this.state.scoreEvents) {
+      if (event.processed) continue;
+      if (event.time > time) break;
+      event.processed = true;
+      this.log(`[${this.formatTime(event.time)}] Score event: ${event.type}`, 'system');
+      if (event.type === 'end') { this.stop(); return; }
+      else if (event.type === 'gpt') this.runGPTInstruction(event.content);
+      else if (event.type === 'cue_change') this.applyCueInstructions(event.instructions);
+    }
+  }
+  
+  applyCueInstructions(instructions) { for (const instr of instructions) this.parseCueInstruction(instr); }
+  
+  parseCueInstruction(line) {
+    const lower = line.toLowerCase().trim();
+    if (lower === 'all stop' || lower === 'stop all') {
+      this.state.activeCategories.clear(); this.clearAllCueTimers();
+      this.log('All cues stopped.', 'system'); return;
+    }
+    
+    // Music commands: "play focus_music", "play /focus_music", "play /focus", "stop music"
+    if (lower === 'stop music' || lower === 'music stop') {
+      this.stopAllMusic();
+      return;
+    }
+    // Stop music with category name: "focus music stop", "field recording stop", etc.
+    if (lower.match(/^(focus|relaxing|motivational|field|hold)[\s_]*(music|recording)?s?\s+stop\s*$/)) {
+      this.stopAllMusic();
+      return;
+    }
+    
+    const musicMatch = lower.match(/^play\s+\/?([a-z]+(?:[_\s][a-z]+)*)/);
+    if (musicMatch) {
+      // Normalize: replace spaces with underscores, strip trailing _music/_recording/_recordings
+      let cat = musicMatch[1].replace(/\s+/g, '_').replace(/_music$/, '').replace(/_recordings?$/, '');
+      const musicMap = {
+        'focus': 'focus', 'relaxing': 'relaxing', 'relax': 'relaxing',
+        'motivational': 'motivational', 'motivate': 'motivational',
+        'field': 'field', 'natural': 'field',
+        'hold': 'hold'
+      };
+      const mappedCat = musicMap[cat];
+      if (mappedCat) {
+        this.playMusic(mappedCat);
+        return;
+      }
+    }
+    
+    // gpt say <file.csv> - random phrase from CSV (no GPT API)
+    const gptSayCsvMatch = line.match(/^gpt\s+say\s+(\S+\.csv)/i);
+    if (gptSayCsvMatch) {
+      this.speakFromCSV(gptSayCsvMatch[1]);
+      return;
+    }
+    
+    // gpt say "literal text" - speak that text directly (no GPT API call)
+    const gptSayLiteralMatch = line.match(/^gpt\s+say\s+["']([^"']+)["']\s*$/i);
+    if (gptSayLiteralMatch) {
+      const text = gptSayLiteralMatch[1];
+      this.log(`[AI direct] "${text}"`, 'gpt');
+      this.speakGPT(text, 2);
+      return;
+    }
+    
+    if (lower.startsWith('gpt:') || lower.startsWith('gpt ')) {
+      const content = line.substring(3).replace(/^[:\s]+/, '');
+      this.runGPTInstruction(content); return;
+    }
+    const tokens = line.split(/\s+/);
+    if (tokens.length < 2) return;
+    let category = tokens[0].toLowerCase();
+    let action = tokens[1].toLowerCase();
+    
+    // Special case: accept "pitch sequence" (two words) as alias for pitch_sequence
+    if (category === 'pitch' && action === 'sequence') {
+      category = 'pitch_sequence';
+      action = tokens[2] ? tokens[2].toLowerCase() : 'start';
+    }
+    
+    // pitch_sequence is special: no CSV data needed, generates tones
+    if (category !== 'pitch_sequence' && !this.state.categoriesData[category]) { this.log(`Unknown category: ${category}`, 'error'); return; }
+    if (action === 'stop') {
+      this.state.activeCategories.delete(category);
+      if (this.state.cueIntervals[category]) { clearTimeout(this.state.cueIntervals[category].timer); delete this.state.cueIntervals[category]; }
+      this.log(`Stopped: ${category}`, 'system'); return;
+    }
+    if (action === 'only') { this.state.activeCategories.clear(); this.clearAllCueTimers(); }
+    let minInterval = 3, maxInterval = 5;
+    const everyMatch = line.match(/every\s+(\d+(?:\.\d+)?)(?:\s*-\s*(\d+(?:\.\d+)?))?\s*seconds?/i);
+    if (everyMatch) {
+      minInterval = parseFloat(everyMatch[1]);
+      maxInterval = everyMatch[2] ? parseFloat(everyMatch[2]) : minInterval;
+    } else if (lower.includes('rapid')) { minInterval = 0.8; maxInterval = 1.2; }
+    else if (lower.includes('sparse')) { minInterval = 6; maxInterval = 10; }
+    let burstMin = 1, burstMax = 1;
+    const burstMatch = line.match(/bursts?\s+(?:of\s+)?(\d+)(?:\s*-\s*(\d+))?/i);
+    if (burstMatch) {
+      burstMin = parseInt(burstMatch[1]);
+      burstMax = burstMatch[2] ? parseInt(burstMatch[2]) : burstMin;
+    }
+    const config = { category, minInterval, maxInterval, burstMin, burstMax };
+    this.state.activeCategories.set(category, config);
+    this.log(`Activated ${category}: every ${minInterval}-${maxInterval}s, bursts ${burstMin}-${burstMax}`, 'system');
+    this.scheduleNextCue(category);
+  }
+  
+  clearAllCueTimers() {
+    Object.values(this.state.cueIntervals).forEach(t => clearTimeout(t.timer));
+    this.state.cueIntervals = {};
+  }
+  
+  startCueScheduling() {
+    for (const category of this.state.activeCategories.keys()) {
+      if (!this.state.cueIntervals[category]) this.scheduleNextCue(category);
+    }
+  }
+  
+  scheduleNextCue(category) {
+    const config = this.state.activeCategories.get(category);
+    if (!config || !this.state.running) return;
+    const tm = this.state.timingMultiplier;
+    const interval = (config.minInterval * tm) + Math.random() * ((config.maxInterval - config.minInterval) * tm);
+    const timer = setTimeout(() => {
+      if (!this.state.running || this.state.paused) return;
+      if (!this.state.activeCategories.has(category)) return;
+      if (this.state.voiceCommandLock) { setTimeout(() => this.scheduleNextCue(category), 1000); return; }
+      const burstCount = config.burstMin + Math.floor(Math.random() * (config.burstMax - config.burstMin + 1));
+      // Stagger burst cues - 500ms apart so each can be heard clearly
+      for (let i = 0; i < burstCount; i++) {
+        setTimeout(() => {
+          if (this.state.running && !this.state.paused && this.state.activeCategories.has(category)) {
+            this.fireCue(category);
+          }
+        }, i * 500);
+      }
+      this.scheduleNextCue(category);
+    }, interval * 1000);
+    this.state.cueIntervals[category] = { timer, config };
+  }
+  
+  // ============== Rehearsal Mode ==============
+
+  buildRehearsalCategoryList() {
+    const container = document.getElementById('rehearsalCategoryList');
+    if (!container) return;
+    container.innerHTML = '';
+    VOICE_CATEGORIES.forEach(cat => {
+      const s = this.state.rehearsalCategories[cat.key] || { enabled: false, min: 3, max: 7 };
+      const minVal = s.min, maxVal = s.max, enabled = s.enabled;
+      // Build notch marks at every second; major ticks at multiples of 5
+      let notchHtml = '', labelHtml = '';
+      for (let i = 0; i <= 20; i++) {
+        const pct = (i / 20) * 100;
+        notchHtml += `<div class="dr-notch${i % 5 === 0 ? ' major' : ''}" style="left:${pct}%"></div>`;
+        if (i % 5 === 0) labelHtml += `<div class="dr-tlabel" style="left:${pct}%">${i}s</div>`;
+      }
+      const fillLeft = (minVal / 20) * 100;
+      const fillWidth = ((maxVal - minVal) / 20) * 100;
+      const row = document.createElement('div');
+      row.className = `rr-row${enabled ? '' : ' rr-off'}`;
+      row.id = `rr-row-${cat.key}`;
+      row.innerHTML = `
+        <div class="rr-header">
+          <input type="checkbox" id="rr-toggle-${cat.key}" ${enabled ? 'checked' : ''}
+                 onchange="app.toggleRehearsalCategory('${cat.key}', this.checked)" style="width:auto;">
+          <label for="rr-toggle-${cat.key}" class="rr-label">${cat.label}</label>
+          <span class="rr-val" id="rr-val-${cat.key}">${minVal}s – ${maxVal}s</span>
+        </div>
+        <div class="dual-range">
+          <div class="dr-bg-track">
+            <div class="dr-fill" id="rr-fill-${cat.key}" style="left:${fillLeft}%;width:${fillWidth}%"></div>
+          </div>
+          <div class="dr-notch-row">${notchHtml}</div>
+          <div class="dr-label-row">${labelHtml}</div>
+          <input type="range" class="dr-input dr-min" id="rr-min-${cat.key}"
+                 min="0" max="20" step="1" value="${minVal}"
+                 oninput="app.updateDualRange('${cat.key}')">
+          <input type="range" class="dr-input dr-max" id="rr-max-${cat.key}"
+                 min="0" max="20" step="1" value="${maxVal}"
+                 oninput="app.updateDualRange('${cat.key}')">
+        </div>`;
+      container.appendChild(row);
+      this._applyDualRangeZIndex(cat.key, minVal);
+    });
+  }
+
+  updateDualRange(catKey) {
+    const minEl = document.getElementById(`rr-min-${catKey}`);
+    const maxEl = document.getElementById(`rr-max-${catKey}`);
+    if (!minEl || !maxEl) return;
+    let minVal = parseInt(minEl.value), maxVal = parseInt(maxEl.value);
+    // Enforce ordering: when handles cross, push the passive one
+    if (minVal > maxVal) {
+      if (document.activeElement === minEl) { maxEl.value = minVal; maxVal = minVal; }
+      else { minEl.value = maxVal; minVal = maxVal; }
+    }
+    this._applyDualRangeZIndex(catKey, minVal);
+    const fill = document.getElementById(`rr-fill-${catKey}`);
+    if (fill) { fill.style.left = `${(minVal / 20) * 100}%`; fill.style.width = `${((maxVal - minVal) / 20) * 100}%`; }
+    const valEl = document.getElementById(`rr-val-${catKey}`);
+    if (valEl) valEl.textContent = `${minVal}s – ${maxVal}s`;
+    if (this.state.rehearsalCategories[catKey]) {
+      this.state.rehearsalCategories[catKey].min = minVal;
+      this.state.rehearsalCategories[catKey].max = maxVal;
+      // Live update: adjust the in-flight schedule if this category is active
+      if (this.state.running && this.state.rehearsalMode) {
+        const config = this.state.activeCategories.get(catKey);
+        if (config) {
+          config.minInterval = Math.max(0.5, minVal);
+          config.maxInterval = Math.max(Math.max(0.5, minVal), maxVal);
+        }
+      }
+      this.saveRehearsalSettings();
+    }
+  }
+
+  _applyDualRangeZIndex(catKey, minVal) {
+    const minEl = document.getElementById(`rr-min-${catKey}`);
+    const maxEl = document.getElementById(`rr-max-${catKey}`);
+    if (!minEl || !maxEl) return;
+    // Bring min handle to front when it's in the upper half so it stays reachable
+    minEl.style.zIndex = minVal >= 10 ? 2 : 1;
+    maxEl.style.zIndex = minVal >= 10 ? 1 : 2;
+  }
+
+  toggleRehearsalCategory(catKey, enabled) {
+    if (!this.state.rehearsalCategories[catKey]) this.state.rehearsalCategories[catKey] = { enabled: false, min: 3, max: 7 };
+    this.state.rehearsalCategories[catKey].enabled = enabled;
+    const row = document.getElementById(`rr-row-${catKey}`);
+    if (row) row.classList.toggle('rr-off', !enabled);
+    // Live update: start or stop this category immediately during playback
+    if (this.state.running && this.state.rehearsalMode) {
+      if (enabled) {
+        const s = this.state.rehearsalCategories[catKey];
+        const minI = Math.max(0.5, s.min), maxI = Math.max(Math.max(0.5, s.min), s.max);
+        this.state.activeCategories.set(catKey, { minInterval: minI, maxInterval: maxI, burstMin: 1, burstMax: 1 });
+        if (!this.state.cueIntervals[catKey]) this.scheduleNextCue(catKey);
+      } else {
+        this.state.activeCategories.delete(catKey);
+        if (this.state.cueIntervals[catKey]) {
+          clearTimeout(this.state.cueIntervals[catKey].timer);
+          delete this.state.cueIntervals[catKey];
+        }
+      }
+    }
+    this.saveRehearsalSettings();
+  }
+
+  toggleRehearsalMode(on) {
+    this.state.rehearsalMode = on;
+    document.getElementById('rehearsalControls').style.display = on ? 'block' : 'none';
+    const scoreSection = document.getElementById('scoreSection');
+    if (scoreSection) scoreSection.classList.toggle('section-greyed', on);
+    const note = document.getElementById('rehearsalScoreNote');
+    if (note) note.style.display = on ? 'block' : 'none';
+    this.saveRehearsalSettings();
+    this.log(`Rehearsal mode ${on ? 'on' : 'off'}.`, 'system');
+  }
+
+  updateRehearsalAIVoice(on) {
+    this.state.rehearsalAIVoice = on;
+    this.saveRehearsalSettings();
+  }
+
+  startRehearsalCues() {
+    this.state.activeCategories.clear();
+    this.state.cueIntervals = {};
+    let count = 0;
+    for (const cat of VOICE_CATEGORIES) {
+      const s = this.state.rehearsalCategories[cat.key];
+      if (s && s.enabled) {
+        const minI = Math.max(0.5, s.min), maxI = Math.max(Math.max(0.5, s.min), s.max);
+        this.state.activeCategories.set(cat.key, { minInterval: minI, maxInterval: maxI, burstMin: 1, burstMax: 1 });
+        count++;
+      }
+    }
+    if (count === 0) {
+      this.log('Rehearsal: no categories enabled — enable categories in the Rehearsal tab.', 'system');
+    } else {
+      this.log(`Rehearsal: ${count} categor${count === 1 ? 'y' : 'ies'} active.`, 'system');
+    }
+    this.startCueScheduling();
+  }
+
+  saveRehearsalSettings() {
+    try {
+      localStorage.setItem('jt_rehearsalMode', JSON.stringify(this.state.rehearsalMode));
+      localStorage.setItem('jt_rehearsalAIVoice', JSON.stringify(this.state.rehearsalAIVoice));
+      localStorage.setItem('jt_rehearsalCategories', JSON.stringify(this.state.rehearsalCategories));
+    } catch (e) {}
+  }
+
+  loadRehearsalSettings() {
+    try {
+      const mode = localStorage.getItem('jt_rehearsalMode');
+      if (mode !== null) this.state.rehearsalMode = JSON.parse(mode);
+      const ai = localStorage.getItem('jt_rehearsalAIVoice');
+      this.state.rehearsalAIVoice = ai !== null ? JSON.parse(ai) : true;
+      const cats = localStorage.getItem('jt_rehearsalCategories');
+      if (cats) Object.assign(this.state.rehearsalCategories, JSON.parse(cats));
+    } catch (e) {}
+  }
+
+  fireCue(category) {
+    // Special handling: pitch_sequence generates and plays tones
+    if (category === 'pitch_sequence') {
+      this.firePitchSequence();
+      return;
+    }
+    
+    const items = this.state.categoriesData[category];
+    if (!items || items.length === 0) return;
+    let item = items[Math.floor(Math.random() * items.length)];
+    let spokenItem = item;
+    
+    // For extract cues: strip any/all "extract" prefixes, convert digit numbers to words.
+    if (category === 'extract') {
+      const value = this.stripExtractPrefix(item);
+      let spokenNumber = value;
+      if (/^\d+$/.test(value.trim())) {
+        spokenNumber = this.numberToWords(parseInt(value, 10));
+      }
+      // Comma after "Extract" prevents TTS from eliding or swallowing it
+      // (e.g. "Extract, eight" not "extreight"; "Extract, nine" not a dropped word)
+      spokenItem = `Extract, ${spokenNumber}`;
+      item = `extract ${value}`;
+    }
+
+    // For chord and pitch categories: replace hyphens with spaces
+    if (category === 'chord_major' || category === 'chord_minor' || category === 'pitch') {
+      spokenItem = spokenItem.replace(/-/g, ' ').replace(/\s+/g, ' ').trim();
+      // Spell out all note letter names so TTS pronounces them unambiguously.
+      // A→Ay already distinguished it from the article "a"; same principle for B-G.
+      // Only substitute if no IPA markup is already present (user has explicit control).
+      if (!spokenItem.includes('/')) {
+        const noteLetters = { a: 'Ay', b: 'Bee', c: 'See', d: 'Dee', e: 'E', f: 'Eff', g: 'Gee' };
+        spokenItem = spokenItem.replace(/^([a-g])\b/i, (_, l) => noteLetters[l.toLowerCase()]);
+      }
+      // For chord categories with accidentals: comma forces a clean pause
+      // so "E flat" and "minor" are pronounced as distinct words.
+      if (category === 'chord_major' || category === 'chord_minor') {
+        spokenItem = spokenItem.replace(/(sharp|flat)\s+(major|minor)\b/i, '$1, $2');
+      }
+    }
+    
+    // Apply IPA conversion: /eɪ/ → ay, /aɪ/ → eye, etc.
+    spokenItem = this.convertIPA(spokenItem);
+    
+    this.speak(spokenItem, category);
+    // Log the cue. If transformed for TTS, show both the source item and the spoken form
+    // so you can verify exactly what text is sent to the speech engine.
+    if (spokenItem !== item) {
+      this.log(`[${this.formatTime(this.state.elapsedSeconds)}] [${category}] ${item} → spoken: "${spokenItem}"`, 'cue');
+    } else {
+      this.log(`[${this.formatTime(this.state.elapsedSeconds)}] [${category}] ${item}`, 'cue');
+    }
+  }
+  
+  // Convert non-negative integer to English words (handles 0 through 999)
+  numberToWords(n) {
+    if (n < 0) return String(n);
+    if (n === 0) return 'zero';
+    
+    const ones = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'];
+    const teens = ['ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen'];
+    const tens = ['', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'];
+    
+    if (n < 10) return ones[n];
+    if (n < 20) return teens[n - 10];
+    if (n < 100) {
+      const t = Math.floor(n / 10);
+      const o = n % 10;
+      return o === 0 ? tens[t] : `${tens[t]} ${ones[o]}`;
+    }
+    if (n < 1000) {
+      const h = Math.floor(n / 100);
+      const r = n % 100;
+      return r === 0 ? `${ones[h]} hundred` : `${ones[h]} hundred ${this.numberToWords(r)}`;
+    }
+    return String(n);  // larger numbers: just use digits
+  }
+  
+  // ============== Pitch Sequence Generator ==============
+  
+  ensurePitchAudioContext() {
+    if (this.state.ttsAudioContext) return this.state.ttsAudioContext;
+    if (!this.state.pitchAudioContext) {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      this.state.pitchAudioContext = new AudioCtx();
+    }
+    return this.state.pitchAudioContext;
+  }
+  
+  generatePitchSequence(length) {
+    if (!length) length = 4 + Math.floor(Math.random() * 5);  // 4-8 notes
+    const seq = [];
+    for (let i = 0; i < length; i++) {
+      seq.push(PITCH_SEQUENCE_NOTES[Math.floor(Math.random() * PITCH_SEQUENCE_NOTES.length)]);
+    }
+    return seq;
+  }
+  
+  async firePitchSequence() {
+    if (this.state.pitchSequencePlaying) {
+      this.log('Skipping pitch_sequence (already playing)', 'system');
+      return;
+    }
+    
+    this.state.pitchSequencePlaying = true;
+    try {
+      // Speak a varied intro using the PITCH_SEQUENCE voice (not AI voice)
+      const intro = PITCH_SEQUENCE_INTROS[Math.floor(Math.random() * PITCH_SEQUENCE_INTROS.length)];
+      this.log(`[pitch_sequence] intro: "${intro}"`, 'system');
+      
+      // Speak intro via the pitch_sequence category voice and wait for it to finish
+      await this.speakPitchIntro(intro);
+      
+      // Brief pause between intro and tones
+      await new Promise(r => setTimeout(r, 400));
+      
+      // Check session is still running
+      if (!this.state.running) return;
+      
+      const sequence = this.generatePitchSequence();
+      this.log(`[${this.formatTime(this.state.elapsedSeconds)}] [pitch_sequence] ${sequence.join(' ')}`, 'cue');
+      await this.playPitchSequenceTones(sequence);
+    } catch (e) {
+      this.log(`Pitch sequence error: ${e.message}`, 'error');
+    } finally {
+      this.state.pitchSequencePlaying = false;
+    }
+  }
+  
+  // Speak intro using pitch_sequence's own voice assignment - bypasses AI queue
+  async speakPitchIntro(text) {
+    if (this.state.useCategoryTTS && this.state.apiKey) {
+      // OpenAI TTS mode - use the assigned pitch_sequence voice
+      const voiceName = this.state.voiceAssignments['pitch_sequence'];
+      const ttsVoice = this.isValidTTSVoice(voiceName) ? voiceName : 'fable';
+      const reverb = parseFloat(document.getElementById('categoryReverbSlider').value);
+      const volume = parseFloat(document.getElementById('volumeSlider').value);
+      const pan = this.state.voicePanning['pitch_sequence'] || 0;
+      return this.speakWithTTS(text, {
+        voice: ttsVoice,
+        pan: pan,
+        reverb: reverb,
+        volume: volume,
+        category: 'pitch_sequence'
+      });
+    } else {
+      // Browser TTS mode - use the assigned browser voice for pitch_sequence
+      return new Promise((resolve) => {
+        const utterance = new SpeechSynthesisUtterance(text);
+        const voiceName = this.state.voiceAssignments['pitch_sequence'];
+        if (voiceName) {
+          const voice = this.state.voices.find(v => v.name === voiceName);
+          if (voice) utterance.voice = voice;
+        }
+        utterance.rate = this.state.voiceRate;
+        utterance.volume = Math.min(1.0, parseFloat(document.getElementById('volumeSlider').value));
+        utterance.pitch = 1.0;
+        utterance.onend = () => resolve();
+        utterance.onerror = () => resolve();
+        setTimeout(() => resolve(), 10000);  // safety timeout
+        speechSynthesis.speak(utterance);
+      });
+    }
+  }
+  
+  async playPitchSequenceTones(sequence, noteDuration = 0.5, gapDuration = 0.1) {
+    const ctx = this.ensurePitchAudioContext();
+    if (ctx.state === 'suspended') {
+      try { await ctx.resume(); } catch (e) {}
+    }
+    
+    let time = ctx.currentTime + 0.05;
+    const peakGain = 0.25;
+    const fadeTime = Math.min(0.05, noteDuration * 0.1);
+    
+    for (const note of sequence) {
+      const freq = PITCH_SEQUENCE_FREQS[note];
+      if (!freq) continue;
+      
+      const osc = ctx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0, time);
+      gain.gain.linearRampToValueAtTime(peakGain, time + fadeTime);
+      gain.gain.setValueAtTime(peakGain, time + noteDuration - fadeTime);
+      gain.gain.linearRampToValueAtTime(0, time + noteDuration);
+      
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      
+      osc.start(time);
+      osc.stop(time + noteDuration);
+      
+      time += noteDuration + gapDuration;
+    }
+    
+    const totalDuration = (time - ctx.currentTime) * 1000;
+    await new Promise(resolve => setTimeout(resolve, totalDuration + 200));
+  }
+  
+  speak(text, category) {
+    if (!this.state.running) return;
+    
+    // Track this speech for echo detection (helps filter mic feedback from category audio)
+    this.trackSpeech(text);
+    
+    if (this.state.useCategoryTTS && this.state.apiKey) {
+      // Use OpenAI TTS with reverb AND panning for category voices
+      const voiceName = this.state.voiceAssignments[category];
+      const ttsVoice = this.isValidTTSVoice(voiceName) ? voiceName : 'alloy';
+      const reverb = parseFloat(document.getElementById('categoryReverbSlider').value);
+      const volume = parseFloat(document.getElementById('volumeSlider').value);
+      const pan = this.state.voicePanning[category] || 0;
+      this.speakWithTTS(text, {
+        voice: ttsVoice,
+        pan: pan,
+        reverb: reverb,
+        volume: volume,
+        category: category,
+        instructions: 'Speak at a natural, confident pace. Enunciate every word and syllable clearly and fully. Do not elide or merge adjacent words, but keep the delivery brisk — no added pauses between words.'
+      });
+    } else {
+      this.speakBrowser(text, category);
+    }
+  }
+  
+  // Priority levels for AI speech (lower number = higher priority):
+  // 0 = voice command acknowledgement (always plays, very short)
+  // 1 = direct conversational response to player speech
+  // 2 = score-driven GPT instruction
+  // 3 = global periodic GPT (lowest priority)
+  speakGPT(text, priority = 2, onSpoken = null) {
+    if (!text) {
+      if (onSpoken) try { onSpoken(); } catch (e) {}
+      return;
+    }
+    
+    // Apply IPA conversion: /eɪ/ → ay, etc.
+    text = this.convertIPA(text);
+    
+    // Insert in priority order (FIFO within same priority)
+    let insertIndex = this.state.aiSpeechQueue.length;
+    for (let i = 0; i < this.state.aiSpeechQueue.length; i++) {
+      if (this.state.aiSpeechQueue[i].priority > priority) {
+        insertIndex = i;
+        break;
+      }
+    }
+    this.state.aiSpeechQueue.splice(insertIndex, 0, { text, priority, onSpoken });
+    
+    // Trim queue if too long
+    const MAX_PENDING = 1;
+    while (this.state.aiSpeechQueue.length > MAX_PENDING) {
+      const dropped = this.state.aiSpeechQueue.pop();
+      if (dropped.onSpoken) try { dropped.onSpoken(); } catch (e) {}  // resolve so awaiter doesn't hang
+      if (dropped.text === text && dropped.priority === priority) {
+        this.log(`AI queue full, skipping: "${text.substring(0, 50)}"`, 'system');
+      } else {
+        this.log(`AI queue trimmed (priority): "${dropped.text.substring(0, 50)}"`, 'system');
+      }
+    }
+    
+    this.processAISpeechQueue();
+  }
+  
+  async processAISpeechQueue() {
+    if (this.state.aiSpeechProcessing) return;
+    this.state.aiSpeechProcessing = true;
+    
+    while (this.state.aiSpeechQueue.length > 0) {
+      const item = this.state.aiSpeechQueue.shift();
+      const text = item.text;
+      try {
+        if (this.state.useTTS && this.state.apiKey) {
+          const voiceName = this.state.gptVoice;
+          const ttsVoice = this.isValidTTSVoice(voiceName) ? voiceName : 'onyx';
+          const reverb = parseFloat(document.getElementById('reverbSlider').value);
+          const volume = parseFloat(document.getElementById('aiVolSlider').value);
+          await this.speakWithTTS(text, {
+            voice: ttsVoice, pan: 0, reverb: reverb, volume: volume, isAI: true,
+            priority: item.priority
+          });
+        } else {
+          this.state.currentlyPlayingPriority = item.priority;
+          await this.speakGPTBrowser(text);
+          this.state.currentlyPlayingPriority = null;
+        }
+        await new Promise(r => setTimeout(r, 200));
+      } catch (e) {
+        this.log(`AI speech error: ${e.message}`, 'error');
+      } finally {
+        if (item.onSpoken) try { item.onSpoken(); } catch (e) {}
+      }
+    }
+    
+    this.state.aiSpeechProcessing = false;
+  }
+  
+  speakFromCSV(filename) {
+    const phrases = this.state.gptTexts[filename];
+    if (!phrases || phrases.length === 0) {
+      this.log(`No phrases found for: ${filename}. Check manifest.json gpt_texts list.`, 'error');
+      return;
+    }
+    const phrase = phrases[Math.floor(Math.random() * phrases.length)];
+    this.log(`[AI: ${filename}] "${phrase}"`, 'gpt');
+    this.speakGPT(phrase);
+  }
+  
+  // ============== OpenAI TTS Pipeline ==============
+  
+  ensureTTSAudioContext() {
+    if (!this.state.ttsAudioContext) {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      this.state.ttsAudioContext = new AudioCtx();
+      this.state.ttsImpulseResponse = this.generateImpulseResponse();
+      if (this.state.outputDeviceId && this.state.ttsAudioContext.setSinkId) {
+        this.state.ttsAudioContext.setSinkId(this.state.outputDeviceId).catch(() => {});
+      }
+    }
+    // Resume if suspended (Chrome/Safari autoplay policy may suspend it)
+    if (this.state.ttsAudioContext.state === 'suspended') {
+      this.state.ttsAudioContext.resume().catch(e => {
+        this.log(`Audio context resume failed: ${e.message}`, 'error');
+      });
+    }
+    return this.state.ttsAudioContext;
+  }
+  
+  generateImpulseResponse() {
+    // Generate synthetic reverb impulse - hall-like (~2 seconds)
+    const ctx = this.state.ttsAudioContext;
+    const length = ctx.sampleRate * 2.5;
+    const impulse = ctx.createBuffer(2, length, ctx.sampleRate);
+    for (let channel = 0; channel < 2; channel++) {
+      const data = impulse.getChannelData(channel);
+      for (let i = 0; i < length; i++) {
+        const decay = Math.pow(1 - i / length, 2.2);
+        data[i] = (Math.random() * 2 - 1) * decay;
+      }
+    }
+    return impulse;
+  }
+  
+  toggleEnhancedAudio(enabled) {
+    this.state.useTTS = enabled;
+    this.log(enabled ? 'AI voice reverb enabled (OpenAI TTS).' : 'AI voice reverb disabled (browser TTS).', 'system');
+    if (enabled) {
+      this.ensureTTSAudioContext();
+    }
+    this.populateVoiceDropdowns();
+  }
+  
+  toggleCategoryTTS(enabled) {
+    this.state.useCategoryTTS = enabled;
+    this.log(enabled ? 'Category voice reverb + panning enabled (OpenAI TTS).' : 'Category voices using browser TTS.', 'system');
+    if (enabled) {
+      this.ensureTTSAudioContext();
+    }
+    this.populateVoiceDropdowns();
+    // Show/hide panning section
+    const panSection = document.getElementById('panningSection');
+    if (panSection) {
+      panSection.style.display = enabled ? 'flex' : 'none';
+      if (enabled) this.refreshPanningUI();
+    }
+  }
+
+  setAIVoiceType(type) {
+    const openai = type === 'openai';
+    document.getElementById(openai ? 'aiVoiceOpenAI' : 'aiVoiceBrowser').checked = true;
+    const rev = document.getElementById('aiReverbSection');
+    if (rev) rev.style.display = openai ? '' : 'none';
+    this.toggleEnhancedAudio(openai);
+  }
+
+  setCategoryVoiceType(type) {
+    const openai = type === 'openai';
+    document.getElementById(openai ? 'categoryVoiceOpenAI' : 'categoryVoiceBrowser').checked = true;
+    const rev = document.getElementById('categoryReverbSection');
+    if (rev) rev.style.display = openai ? '' : 'none';
+    this.toggleCategoryTTS(openai);
+  }
+  
+  refreshPanningUI() {
+    const grid = document.getElementById('panningGrid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    VOICE_CATEGORIES.forEach(cat => {
+      const panVal = this.state.voicePanning[cat.key] || 0;
+      const row = document.createElement('div');
+      row.className = 'slider-row';
+      row.innerHTML = `
+        <span>${cat.label}</span>
+        <input type="range" min="-1" max="1" step="0.1" value="${panVal}" 
+               oninput="app.updatePanning('${cat.key}', this.value); document.getElementById('pan-${cat.key}').textContent = app.formatPan(this.value)">
+        <span id="pan-${cat.key}">${this.formatPan(panVal)}</span>
+      `;
+      grid.appendChild(row);
+    });
+  }
+  
+  updatePanning(category, value) {
+    this.state.voicePanning[category] = parseFloat(value);
+  }
+  
+  formatPan(val) {
+    const v = parseFloat(val);
+    if (v < -0.1) return 'L' + Math.round(Math.abs(v) * 100);
+    if (v > 0.1) return 'R' + Math.round(v * 100);
+    return 'C';
+  }
+  
+  async getTTSAudio(text, voice, opts = {}) {
+    // opts.instructions: if set, uses gpt-4o-mini-tts (which supports the instructions
+    // parameter) so the model can be told to enunciate each word clearly. Without
+    // instructions (AI voice, pitch sequences etc.) we keep tts-1-hd.
+    const model = opts.instructions ? 'gpt-4o-mini-tts' : 'tts-1-hd';
+    const cacheKey = `${model}_${voice}_${text}`;
+    if (this.state.ttsCache.has(cacheKey)) {
+      return this.state.ttsCache.get(cacheKey);
+    }
+
+    const requestBody = {
+      model,
+      voice: voice,
+      input: text,
+      response_format: 'mp3'
+    };
+    if (opts.instructions) requestBody.instructions = opts.instructions;
+
+    const response = await fetch('https://api.openai.com/v1/audio/speech', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${this.state.apiKey}`
+      },
+      body: JSON.stringify(requestBody)
+    });
+    
+    if (!response.ok) {
+      throw new Error(`TTS API error ${response.status}`);
+    }
+    
+    const arrayBuffer = await response.arrayBuffer();
+    const ctx = this.ensureTTSAudioContext();
+    const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
+    
+    // Diagnostic: warn if returned audio is suspiciously short (TTS may have truncated)
+    // Rough expectation: ~50ms per character for typical speech
+    const expectedMs = text.length * 50;
+    const actualMs = audioBuffer.duration * 1000;
+    if (actualMs < expectedMs * 0.5 && text.length > 4) {
+      this.log(`[TTS WARN] "${text}" → only ${actualMs.toFixed(0)}ms audio (expected ~${expectedMs}ms) — may be truncated by API`, 'system');
+    }
+    
+    // Cache (limit cache size to 200 entries)
+    if (this.state.ttsCache.size > 200) {
+      const firstKey = this.state.ttsCache.keys().next().value;
+      this.state.ttsCache.delete(firstKey);
+    }
+    this.state.ttsCache.set(cacheKey, audioBuffer);
+    
+    return audioBuffer;
+  }
+  
+  async speakWithTTS(text, options = {}) {
+    try {
+      const voice = options.voice || 'alloy';
+      
+      // Per-voice queueing: drop new cue if this voice is already speaking
+      // (only for category cues; AI voice has its own queue)
+      if (!options.isAI) {
+        if (!this.state.voiceAudioPlaying) this.state.voiceAudioPlaying = {};
+        if (this.state.voiceAudioPlaying[voice]) {
+          this.log(`Skipping (${voice} still speaking): "${text}"`, 'system');
+          return;
+        }
+        this.state.voiceAudioPlaying[voice] = true;
+      }
+      
+      const audioBuffer = await this.getTTSAudio(text, voice, { instructions: options.instructions });
+
+      const ctx = this.state.ttsAudioContext;
+      const source = ctx.createBufferSource();
+      source.buffer = audioBuffer;
+      
+      // Track this as the currently playing AI source (for interruption)
+      if (options.isAI) {
+        this.state.currentTTSSource = source;
+        this.state.currentlyPlayingPriority = options.priority !== undefined ? options.priority : 2;
+      }
+      
+      let lastNode = source;
+      
+      // Pan
+      const panValue = options.pan || 0;
+      const panner = ctx.createStereoPanner();
+      panner.pan.value = Math.max(-1, Math.min(1, panValue));
+      lastNode.connect(panner);
+      lastNode = panner;
+      
+      // Reverb (parallel wet/dry mix)
+      if (options.reverb > 0) {
+        const dry = ctx.createGain();
+        const wet = ctx.createGain();
+        const convolver = ctx.createConvolver();
+        convolver.buffer = this.state.ttsImpulseResponse;
+        
+        dry.gain.value = 1 - options.reverb * 0.5;
+        wet.gain.value = options.reverb;
+        
+        lastNode.connect(dry);
+        lastNode.connect(convolver);
+        convolver.connect(wet);
+        
+        const mix = ctx.createGain();
+        dry.connect(mix);
+        wet.connect(mix);
+        lastNode = mix;
+      }
+      
+      // Volume
+      const volumeNode = ctx.createGain();
+      volumeNode.gain.value = options.volume || 1.0;
+      lastNode.connect(volumeNode);
+      volumeNode.connect(ctx.destination);
+      
+      if (options.isAI) this.trackAISpeech(text);
+
+      source.start();
+
+      return new Promise(resolve => {
+        source.onended = () => {
+          if (!options.isAI) {
+            if (this.state.voiceAudioPlaying) this.state.voiceAudioPlaying[voice] = false;
+            this.state.lastCategoryTTSEnd = Date.now();
+          } else {
+            if (this.state.currentTTSSource === source) {
+              this.state.currentTTSSource = null;
+              this.state.currentlyPlayingPriority = null;
+            }
+            // Mark actual end time so mic suppression only covers the reverb tail
+            this.state.lastAISpeechEnd = Date.now();
+          }
+          resolve();
+        };
+      });
+    } catch (e) {
+      // Clear playing flag on error
+      if (!options.isAI && this.state.voiceAudioPlaying) {
+        this.state.voiceAudioPlaying[options.voice] = false;
+      }
+      this.log(`TTS error: ${e.message}. Falling back to browser TTS.`, 'error');
+      if (options.isAI) {
+        return this.speakGPTBrowser(text);
+      } else {
+        this.speakBrowser(text, options.category);
+      }
+    }
+  }
+  
+  speakBrowser(text, category) {
+    // Chrome can transiently empty getVoices() after enumerateDevices(); reload if needed.
+    if (this.state.voices.length === 0) {
+      const fresh = speechSynthesis.getVoices();
+      if (fresh.length > 0) { this.state.voices = fresh; this.populateVoiceDropdowns(); }
+    }
+    const utterance = new SpeechSynthesisUtterance(text);
+    const voiceName = this.state.voiceAssignments[category];
+    if (voiceName) {
+      const voice = this.state.voices.find(v => v.name === voiceName);
+      if (voice) utterance.voice = voice;
+    }
+    utterance.rate = this.state.voiceRate;
+    // Browser TTS volume capped at 1.0 (slider can go higher for OpenAI TTS only)
+    utterance.volume = Math.min(1.0, parseFloat(document.getElementById('volumeSlider').value));
+    utterance.pitch = 1.0;
+    utterance.onend = () => { this.state.lastBrowserTTSEnd = Date.now(); };
+    utterance.onerror = (e) => {
+      this.state.lastBrowserTTSEnd = Date.now();
+      if (e.error !== 'interrupted') this.log(`Browser TTS error: ${e.error} — "${text}"`, 'error');
+    };
+    if (speechSynthesis.paused) speechSynthesis.resume();
+    this.log(`[Browser TTS] ${category}: "${text}" vol=${utterance.volume}`, 'system');
+    speechSynthesis.speak(utterance);
+  }
+  
+  speakGPTBrowser(text) {
+    this.trackAISpeech(text);
+    return new Promise((resolve) => {
+      const utterance = new SpeechSynthesisUtterance(text);
+      if (this.state.gptVoice) {
+        const voice = this.state.voices.find(v => v.name === this.state.gptVoice);
+        if (voice) utterance.voice = voice;
+      }
+      utterance.rate = Math.min(2.0, this.state.voiceRate * 1.05);
+      utterance.volume = Math.min(1.0, parseFloat(document.getElementById('aiVolSlider').value));
+      utterance.pitch = 1.0;
+      utterance.onend = () => { this.state.lastBrowserTTSEnd = Date.now(); resolve(); };
+      utterance.onerror = (e) => { this.state.lastBrowserTTSEnd = Date.now(); resolve(); };
+      // Safety timeout in case onend doesn't fire
+      setTimeout(() => resolve(), 30000);
+      if (speechSynthesis.paused) speechSynthesis.resume();
+      speechSynthesis.speak(utterance);
+    });
+  }
+  
+  async maybeRunGPT() {
+    if (!this.state.globalGPT || this.state.globalGPT.length === 0) return;
+    if (this.state.gptInProgress) return;
+    const instruction = this.state.globalGPT[Math.floor(Math.random() * this.state.globalGPT.length)];
+    this.state.lastGPTTime = Date.now();
+    await this.runGPTInstruction(instruction, 3);  // Global = lowest priority
+  }
+  
+  async runGPTInstruction(instruction, priority = 2) {
+    if (!this.state.apiKey) { this.log('GPT skipped (no API key)', 'error'); return; }
+    if (this.state.gptInProgress) return;
+    this.state.gptInProgress = true;
+    this.log(`[GPT] Processing: "${instruction.substring(0, 60)}..."`, 'gpt');
+    try {
+      const context = this.buildGPTContext(instruction);
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.state.apiKey}` },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            { role: 'system', content: 'You are an AI guide speaking aloud to a live musical performer during a performance. Based on the score instruction provided, deliver a single short utterance (1-2 sentences) directly to the performer.\n\nCRITICAL RULES:\n- If the instruction is or contains a question, ASK that question TO the performer. NEVER answer questions yourself - questions are for the performer to answer (or not).\n- If the instruction is a directive like "ask the performer about X" or "welcome them", execute it by speaking to the performer.\n- If the instruction is a statement, reflection, or observation, deliver it as a brief spoken comment to the performer.\n- Speak in a natural, warm tone. No markdown. No self-commentary like "I would say" - just speak the message itself.' },
+            { role: 'user', content: context }
+          ],
+          max_tokens: 100, temperature: 0.8
+        })
+      });
+      if (!response.ok) { this.log(`GPT API error: ${response.status}`, 'error'); return; }
+      const data = await response.json();
+      const text = data.choices[0].message.content.trim();
+      this.log(`[GPT] "${text}"`, 'gpt');
+      this.speakGPT(text, priority);
+    } catch (e) {
+      this.log(`GPT error: ${e.message}`, 'error');
+    } finally {
+      this.state.gptInProgress = false;
+    }
+  }
+  
+  buildGPTContext(instruction) {
+    const elapsed = this.formatTime(this.state.elapsedSeconds);
+    const total = this.formatTime(this.state.totalDuration);
+    const activeCats = Array.from(this.state.activeCategories.keys()).join(', ') || 'none';
+    return `Performance time: ${elapsed} of ${total}. Active categories: ${activeCats}.\n\nScore instruction: ${instruction}\n\nSpeak this aloud to the performer now. If it's a question, ask the performer (do not answer it yourself).`;
+  }
+  
+  saveConfig() {
+    const config = {
+      name: 'My Config',
+      duration: document.getElementById('duration').value,
+      voiceAssignments: this.state.voiceAssignments,
+      gptVoice: this.state.gptVoice,
+      volume: document.getElementById('volumeSlider').value,
+      aiVolume: document.getElementById('aiVolSlider').value,
+      musicVolume: document.getElementById('musicVolSlider').value,
+      reverb: document.getElementById('reverbSlider').value,
+      categoryReverb: document.getElementById('categoryReverbSlider').value,
+      useTTS: this.state.useTTS,
+      useCategoryTTS: this.state.useCategoryTTS,
+      calibratedThreshold: this.state.calibratedThreshold,
+      calibrationDetails: this.state.calibrationDetails,
+      voicePanning: this.state.voicePanning,
+      savedAt: new Date().toISOString()
+    };
+    const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'justtrying_config.json'; a.click();
+    URL.revokeObjectURL(url);
+    this.log('Configuration saved to your Downloads folder.', 'info');
+  }
+  
+  loadConfig() {
+    const input = document.createElement('input');
+    input.type = 'file'; input.accept = '.json';
+    input.onchange = (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        try {
+          const config = JSON.parse(ev.target.result);
+          if (config.duration) document.getElementById('duration').value = config.duration;
+          
+          // Apply TTS toggles FIRST so dropdowns are populated correctly
+          if (config.useTTS !== undefined) {
+            this.setAIVoiceType(config.useTTS ? 'openai' : 'browser');
+          }
+          if (config.useCategoryTTS !== undefined) {
+            this.setCategoryVoiceType(config.useCategoryTTS ? 'openai' : 'browser');
+          }
+          
+          if (config.voiceAssignments) {
+            this.state.voiceAssignments = config.voiceAssignments;
+          }
+          if (config.gptVoice) {
+            this.state.gptVoice = config.gptVoice;
+          }
+          
+          // Repopulate dropdowns with new TTS mode
+          this.populateVoiceDropdowns();
+          
+          if (config.voicePanning) {
+            this.state.voicePanning = config.voicePanning;
+            this.refreshPanningUI();
+          }
+          
+          const setSlider = (id, valId, val, suffix) => {
+            if (val !== undefined && document.getElementById(id)) {
+              document.getElementById(id).value = val;
+              if (valId && document.getElementById(valId)) {
+                document.getElementById(valId).textContent = val + (suffix || '');
+              }
+            }
+          };
+          setSlider('volumeSlider', 'volumeValue', config.volume);
+          setSlider('aiVolSlider', 'aiVolValue', config.aiVolume);
+          setSlider('musicVolSlider', 'musicVolValue', config.musicVolume);
+          setSlider('reverbSlider', 'reverbValue', config.reverb);
+          setSlider('categoryReverbSlider', 'categoryReverbValue', config.categoryReverb);
+          
+          if (config.calibratedThreshold !== undefined) {
+            this.state.calibratedThreshold = config.calibratedThreshold;
+          }
+          if (config.calibrationDetails) {
+            this.state.calibrationDetails = config.calibrationDetails;
+            this.updateCalibrationStatus();
+          }
+          
+          this.saveToStorage();
+          this.log(`Config loaded: ${config.name || file.name}`, 'info');
+        } catch (err) {
+          this.log(`Failed: ${err.message}`, 'error');
+        }
+      };
+      reader.readAsText(file);
+    };
+    input.click();
+  }
+  
+  log(message, type = 'info') {
+    const logEl = document.getElementById('log');
+    const time = new Date().toLocaleTimeString('en-US', { hour12: false });
+    const div = document.createElement('div');
+    div.className = `log-${type}`;
+    div.textContent = `[${time}] ${message}`;
+    logEl.appendChild(div);
+    logEl.scrollTop = logEl.scrollHeight;
+    while (logEl.children.length > 500) logEl.removeChild(logEl.firstChild);
+  }
+}
+
+const app = new JustTryingApp();
+</script>
+</body>
+</html>
