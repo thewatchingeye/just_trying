@@ -248,7 +248,7 @@
       
       <div class="tab-content" id="tab-settings">
         <div style="background: #e8f4f8; border: 1px solid #1a6f76; padding: 6px 10px; border-radius: 4px; font-size: 11px; color: #1a6f76;">
-          Build v23 — audio device selector + mic level (VAD only)
+          Build v24 — voice type selectors, mic input priority fix
         </div>
         <div class="section">
           <div class="section-title">AUDIO DEVICES</div>
@@ -266,6 +266,7 @@
             </select>
           </div>
           <div id="outputDeviceNote" class="info-text" style="display:none; color:#a33;">Output device selection not supported in this browser (Chrome/Edge only).</div>
+          <div class="info-text">Output device applies to OpenAI TTS and music only. Browser voices always use the system default output.</div>
           <div class="slider-row">
             <span>Mic Level</span>
             <input type="range" id="micGainSlider" min="0.1" max="3.0" step="0.1" value="1.0" oninput="app.setMicGain(this.value)">
@@ -295,33 +296,33 @@
         </div>
         
         <div class="section">
-          <div class="section-title">AI VOICE REVERB</div>
-          <div style="display: flex; align-items: center; gap: 8px; font-size: 12px;">
-            <input type="checkbox" id="useTTS" style="width: auto;" onchange="app.toggleEnhancedAudio(this.checked)">
-            <label for="useTTS">Enable reverb on AI voice (uses OpenAI TTS)</label>
+          <div class="section-title">AI VOICE</div>
+          <div style="display:flex; gap:16px; font-size:12px; align-items:center; margin-bottom:6px;">
+            <label style="display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="radio" name="aiVoiceType" id="aiVoiceBrowser" value="browser" style="width:auto;" onchange="app.setAIVoiceType('browser')" checked> Browser</label>
+            <label style="display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="radio" name="aiVoiceType" id="aiVoiceOpenAI" value="openai" style="width:auto;" onchange="app.setAIVoiceType('openai')"> OpenAI TTS</label>
           </div>
-          <div class="slider-row" style="margin-top: 8px;">
-            <span>AI Reverb</span>
-            <input type="range" id="reverbSlider" min="0" max="1" step="0.05" value="0.3" oninput="document.getElementById('reverbValue').textContent = this.value">
-            <span id="reverbValue">0.3</span>
+          <div id="aiReverbSection" style="display:none;">
+            <div class="slider-row">
+              <span>Reverb</span>
+              <input type="range" id="reverbSlider" min="0" max="1" step="0.05" value="0.3" oninput="document.getElementById('reverbValue').textContent = this.value">
+              <span id="reverbValue">0.3</span>
+            </div>
           </div>
         </div>
-        
+
         <div class="section">
-          <div class="section-title">CATEGORY VOICE REVERB</div>
-          <div style="display: flex; align-items: center; gap: 8px; font-size: 12px;">
-            <input type="checkbox" id="useCategoryTTS" style="width: auto;" onchange="app.toggleCategoryTTS(this.checked)">
-            <label for="useCategoryTTS">Use OpenAI TTS for category voices (enables reverb + panning)</label>
+          <div class="section-title">CATEGORY VOICES</div>
+          <div style="display:flex; gap:16px; font-size:12px; align-items:center; margin-bottom:6px;">
+            <label style="display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="radio" name="categoryVoiceType" id="categoryVoiceBrowser" value="browser" style="width:auto;" onchange="app.setCategoryVoiceType('browser')" checked> Browser</label>
+            <label style="display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="radio" name="categoryVoiceType" id="categoryVoiceOpenAI" value="openai" style="width:auto;" onchange="app.setCategoryVoiceType('openai')"> OpenAI TTS</label>
           </div>
-          <div class="info-text">
-            Browser voices (Jamie, Karen, etc.) cannot have reverb due to browser limitations.<br>
-            Enable this to switch category voices to OpenAI TTS (9 voices available).<br>
-            Cost: ~$0.02-0.04 per session.
-          </div>
-          <div class="slider-row" style="margin-top: 8px;">
-            <span>Category Reverb</span>
-            <input type="range" id="categoryReverbSlider" min="0" max="1" step="0.05" value="0.2" oninput="document.getElementById('categoryReverbValue').textContent = this.value">
-            <span id="categoryReverbValue">0.2</span>
+          <div class="info-text" style="margin-bottom:4px;">OpenAI TTS enables reverb, panning, and caching. Cost: ~$0.02–0.04 per session.</div>
+          <div id="categoryReverbSection" style="display:none;">
+            <div class="slider-row">
+              <span>Reverb</span>
+              <input type="range" id="categoryReverbSlider" min="0" max="1" step="0.05" value="0.2" oninput="document.getElementById('categoryReverbValue').textContent = this.value">
+              <span id="categoryReverbValue">0.2</span>
+            </div>
           </div>
         </div>
         
@@ -475,6 +476,8 @@ class JustTryingApp {
       voicePanning: {},  // category -> pan value (-1 to 1)
       useTTS: false,
       useCategoryTTS: false,
+      lastBrowserTTSEnd: 0,
+      lastCategoryTTSEnd: 0,
       ttsCache: new Map(),
       ttsAudioContext: null,
       ttsImpulseResponse: null,
@@ -1106,15 +1109,13 @@ class JustTryingApp {
   }
   
   async transcribeWithWhisper(audioBlob) {
-    // Suppress while browser TTS is active
-    if (speechSynthesis.speaking || speechSynthesis.pending) return;
-    // Suppress while OpenAI TTS (Web Audio) is playing — these bypass speechSynthesis
-    // and would otherwise be picked up by the mic and hallucinated by Whisper.
-    // A 400ms post-speech buffer covers the room reverb tail.
-    const categoryTTSActive = this.state.voiceAudioPlaying &&
-      Object.values(this.state.voiceAudioPlaying).some(v => v);
-    const aiTTSActive = Date.now() < (this.state.lastAISpeechEnd || 0) + 400;
-    if (categoryTTSActive || aiTTSActive) return;
+    // Suppress only during the brief bleed tail after TTS ends, not while it's playing.
+    // This allows the user to speak over or just after category cues.
+    const now = Date.now();
+    const aiTTSActive = now < (this.state.lastAISpeechEnd || 0) + 400;
+    const catBleed = now < (this.state.lastCategoryTTSEnd || 0) + 250;
+    const browserBleed = now < (this.state.lastBrowserTTSEnd || 0) + 400;
+    if (aiTTSActive || catBleed || browserBleed) return;
 
     try {
       const formData = new FormData();
@@ -2978,6 +2979,22 @@ class JustTryingApp {
       if (enabled) this.refreshPanningUI();
     }
   }
+
+  setAIVoiceType(type) {
+    const openai = type === 'openai';
+    document.getElementById(openai ? 'aiVoiceOpenAI' : 'aiVoiceBrowser').checked = true;
+    const rev = document.getElementById('aiReverbSection');
+    if (rev) rev.style.display = openai ? '' : 'none';
+    this.toggleEnhancedAudio(openai);
+  }
+
+  setCategoryVoiceType(type) {
+    const openai = type === 'openai';
+    document.getElementById(openai ? 'categoryVoiceOpenAI' : 'categoryVoiceBrowser').checked = true;
+    const rev = document.getElementById('categoryReverbSection');
+    if (rev) rev.style.display = openai ? '' : 'none';
+    this.toggleCategoryTTS(openai);
+  }
   
   refreshPanningUI() {
     const grid = document.getElementById('panningGrid');
@@ -3134,6 +3151,7 @@ class JustTryingApp {
         source.onended = () => {
           if (!options.isAI) {
             if (this.state.voiceAudioPlaying) this.state.voiceAudioPlaying[voice] = false;
+            this.state.lastCategoryTTSEnd = Date.now();
           } else {
             if (this.state.currentTTSSource === source) {
               this.state.currentTTSSource = null;
@@ -3168,6 +3186,8 @@ class JustTryingApp {
     // Browser TTS volume capped at 1.0 (slider can go higher for OpenAI TTS only)
     utterance.volume = Math.min(1.0, parseFloat(document.getElementById('volumeSlider').value));
     utterance.pitch = 1.0;
+    utterance.onend = () => { this.state.lastBrowserTTSEnd = Date.now(); };
+    utterance.onerror = () => { this.state.lastBrowserTTSEnd = Date.now(); };
     speechSynthesis.speak(utterance);
   }
   
@@ -3182,8 +3202,8 @@ class JustTryingApp {
       utterance.rate = Math.min(2.0, this.state.voiceRate * 1.05);
       utterance.volume = Math.min(1.0, parseFloat(document.getElementById('aiVolSlider').value));
       utterance.pitch = 1.0;
-      utterance.onend = () => resolve();
-      utterance.onerror = () => resolve();
+      utterance.onend = () => { this.state.lastBrowserTTSEnd = Date.now(); resolve(); };
+      utterance.onerror = () => { this.state.lastBrowserTTSEnd = Date.now(); resolve(); };
       // Safety timeout in case onend doesn't fire
       setTimeout(() => resolve(), 30000);
       speechSynthesis.speak(utterance);
@@ -3247,8 +3267,8 @@ class JustTryingApp {
       musicVolume: document.getElementById('musicVolSlider').value,
       reverb: document.getElementById('reverbSlider').value,
       categoryReverb: document.getElementById('categoryReverbSlider').value,
-      useTTS: document.getElementById('useTTS').checked,
-      useCategoryTTS: document.getElementById('useCategoryTTS').checked,
+      useTTS: this.state.useTTS,
+      useCategoryTTS: this.state.useCategoryTTS,
       calibratedThreshold: this.state.calibratedThreshold,
       calibrationDetails: this.state.calibrationDetails,
       voicePanning: this.state.voicePanning,
@@ -3276,18 +3296,10 @@ class JustTryingApp {
           
           // Apply TTS toggles FIRST so dropdowns are populated correctly
           if (config.useTTS !== undefined) {
-            document.getElementById('useTTS').checked = config.useTTS;
-            this.state.useTTS = config.useTTS;
+            this.setAIVoiceType(config.useTTS ? 'openai' : 'browser');
           }
           if (config.useCategoryTTS !== undefined) {
-            document.getElementById('useCategoryTTS').checked = config.useCategoryTTS;
-            this.state.useCategoryTTS = config.useCategoryTTS;
-            // Show panning section if needed
-            const panSection = document.getElementById('panningSection');
-            if (panSection) panSection.style.display = config.useCategoryTTS ? 'flex' : 'none';
-          }
-          if (config.useTTS || config.useCategoryTTS) {
-            this.ensureTTSAudioContext();
+            this.setCategoryVoiceType(config.useCategoryTTS ? 'openai' : 'browser');
           }
           
           if (config.voiceAssignments) {
