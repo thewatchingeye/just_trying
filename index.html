@@ -248,7 +248,7 @@
       
       <div class="tab-content" id="tab-settings">
         <div style="background: #e8f4f8; border: 1px solid #1a6f76; padding: 6px 10px; border-radius: 4px; font-size: 11px; color: #1a6f76;">
-          Build v27 — fix browser TTS silenced by enumerateDevices
+          Build v28 — remove all auto enumerateDevices calls
         </div>
         <div class="section">
           <div class="section-title">AUDIO DEVICES</div>
@@ -536,7 +536,9 @@ class JustTryingApp {
       micGainSlider.value = this.state.micGain;
       document.getElementById('micGainValue').textContent = this.state.micGain.toFixed(1);
     }
-    this.populateAudioDevices();
+    // populateAudioDevices() intentionally not called here — enumerateDevices()
+    // on page load resets Chrome/macOS speechSynthesis state, silencing browser
+    // voices. User clicks Refresh in Audio Devices settings to populate when ready.
 
     this.buildRehearsalCategoryList();
     // Restore rehearsal mode UI state if it was saved on
@@ -2208,11 +2210,13 @@ class JustTryingApp {
     
     // Warm up browser speechSynthesis in the user-gesture context so timer-fired
     // cues can call speak() without Chrome's user-activation check blocking them.
+    // Use a real character at rate 10 so Chrome fully processes the activation.
+    // Do NOT cancel — cancelling immediately may prevent Chrome registering it.
     try {
-      const warmup = new SpeechSynthesisUtterance('');
+      const warmup = new SpeechSynthesisUtterance('.');
       warmup.volume = 0;
+      warmup.rate = 10;
       speechSynthesis.speak(warmup);
-      speechSynthesis.cancel();
     } catch (e) {}
 
     // Auto-enable mic on Play if not already on (helps if user forgets)
