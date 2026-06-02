@@ -248,7 +248,7 @@
       
       <div class="tab-content" id="tab-settings">
         <div style="background: #e8f4f8; border: 1px solid #1a6f76; padding: 6px 10px; border-radius: 4px; font-size: 11px; color: #1a6f76;">
-          Build v22 — audio device selector + mic level
+          Build v23 — audio device selector + mic level (VAD only)
         </div>
         <div class="section">
           <div class="section-title">AUDIO DEVICES</div>
@@ -489,8 +489,7 @@ class JustTryingApp {
       inputDeviceId: '',
       outputDeviceId: '',
       micGain: 1.0,
-      micGainNode: null,
-      micRecordStream: null
+      micGainNode: null
     };
     this.init();
   }
@@ -963,18 +962,12 @@ class JustTryingApp {
     this.state.audioContext = new AudioCtx();
     const source = this.state.audioContext.createMediaStreamSource(this.state.audioStream);
 
-    // Mic gain node — lets the in-app Mic Level slider boost/attenuate the signal
-    // for both VAD detection and Whisper transcription.
+    // Mic gain node — adjusts signal level seen by the VAD analyser.
+    // MediaRecorder uses the raw getUserMedia stream directly (more reliable).
     const gainNode = this.state.audioContext.createGain();
     gainNode.gain.value = this.state.micGain || 1.0;
     source.connect(gainNode);
     this.state.micGainNode = gainNode;
-
-    // Route processed stream to a MediaStreamDestination so MediaRecorder
-    // picks up the gain-adjusted audio rather than the raw getUserMedia stream.
-    const micStreamDest = this.state.audioContext.createMediaStreamDestination();
-    gainNode.connect(micStreamDest);
-    this.state.micRecordStream = micStreamDest.stream;
 
     const analyser = this.state.audioContext.createAnalyser();
     analyser.fftSize = 2048;
@@ -1061,8 +1054,7 @@ class JustTryingApp {
           try {
             const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' :
                             MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : 'audio/ogg';
-            const recordStream = this.state.micRecordStream || this.state.audioStream;
-            mediaRecorder = new MediaRecorder(recordStream, { mimeType });
+            mediaRecorder = new MediaRecorder(this.state.audioStream, { mimeType });
             
             mediaRecorder.ondataavailable = (e) => {
               if (e.data.size > 0) chunks.push(e.data);
