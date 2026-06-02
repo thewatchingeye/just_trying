@@ -35,7 +35,7 @@ All code lives inside `index.html` in a single `<script>` block.
 
 ## Current build
 
-**Build v29** — voice type selectors, mic priority (no device settings)
+**Build v28** — remove all auto enumerateDevices calls (current live version)
 
 Bump the build banner string when shipping a change so the user can confirm cache-busting.
 After every build, copy `index.html` to `versions/index_vXX.html` and commit both.
