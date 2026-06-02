@@ -248,7 +248,7 @@
       
       <div class="tab-content" id="tab-settings">
         <div style="background: #e8f4f8; border: 1px solid #1a6f76; padding: 6px 10px; border-radius: 4px; font-size: 11px; color: #1a6f76;">
-          Build v25 — mic priority + browser TTS fixes
+          Build v26 — browser TTS warm-up fix
         </div>
         <div class="section">
           <div class="section-title">AUDIO DEVICES</div>
@@ -948,8 +948,9 @@ class JustTryingApp {
       btn.textContent = 'Listening...';
       btn.classList.add('listening');
       this.log('Voice recognition enabled (Whisper).', 'system');
-      // Re-enumerate now that mic permission is granted (labels become available)
-      this.populateAudioDevices();
+      // Re-enumerate after a short delay so enumerateDevices() doesn't race with
+      // the speechSynthesis warm-up that play() fires in the same gesture context.
+      setTimeout(() => this.populateAudioDevices(), 800);
       
       this.startVoiceActivityDetection();
     } catch (e) {
@@ -2204,6 +2205,15 @@ class JustTryingApp {
       this.startCueScheduling();
     }
     
+    // Warm up browser speechSynthesis in the user-gesture context so timer-fired
+    // cues can call speak() without Chrome's user-activation check blocking them.
+    try {
+      const warmup = new SpeechSynthesisUtterance('');
+      warmup.volume = 0;
+      speechSynthesis.speak(warmup);
+      speechSynthesis.cancel();
+    } catch (e) {}
+
     // Auto-enable mic on Play if not already on (helps if user forgets)
     if (!this.state.micEnabled && this.state.apiKey) {
       this.toggleMic().catch(() => {});
@@ -3200,7 +3210,8 @@ class JustTryingApp {
       this.state.lastBrowserTTSEnd = Date.now();
       if (e.error !== 'interrupted') this.log(`Browser TTS error: ${e.error} — "${text}"`, 'error');
     };
-    this.log(`[Browser TTS] ${category}: "${text}"`, 'system');
+    if (speechSynthesis.paused) speechSynthesis.resume();
+    this.log(`[Browser TTS] ${category}: "${text}" vol=${utterance.volume}`, 'system');
     speechSynthesis.speak(utterance);
   }
   
@@ -3216,9 +3227,10 @@ class JustTryingApp {
       utterance.volume = Math.min(1.0, parseFloat(document.getElementById('aiVolSlider').value));
       utterance.pitch = 1.0;
       utterance.onend = () => { this.state.lastBrowserTTSEnd = Date.now(); resolve(); };
-      utterance.onerror = () => { this.state.lastBrowserTTSEnd = Date.now(); resolve(); };
+      utterance.onerror = (e) => { this.state.lastBrowserTTSEnd = Date.now(); resolve(); };
       // Safety timeout in case onend doesn't fire
       setTimeout(() => resolve(), 30000);
+      if (speechSynthesis.paused) speechSynthesis.resume();
       speechSynthesis.speak(utterance);
     });
   }
